@@ -58,4 +58,3 @@ cds.deleteRow(struct('id', 2,'name','tralala'));
 
 % Close the connection to cassandra.
 cds.close();
-delete(cds);
