@@ -1,10 +1,9 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.cmp.wbs</groupId>
-  <artifactId>cassandra-connector</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
-  <name>Cassandra connector</name>
-  <description>Cassandra connector for Matlab</description>
+  <version>0.0.1</version>
+  <name>Cassandra Key-Value Store</name>
+  <description>Cassandra Key-Value store for Matlab.</description>
   <dependencies>
   	<dependency>
   		<groupId>com.datastax.cassandra</groupId>
@@ -31,10 +30,27 @@
                 </execution>
             </executions>
     	</plugin>
+		<plugin>
+		  <groupId>org.apache.maven.plugins</groupId>
+		  <artifactId>maven-assembly-plugin</artifactId>
+		  <configuration>
+		    <descriptor>src/assembly/bin.xml</descriptor>
+		    <finalName>ckvs-${pom.version}</finalName>
+		  </configuration>
+		  <executions>
+		    <execution>
+		      <phase>package</phase>
+		      <goals>
+		        <goal>single</goal>
+		      </goals>
+		    </execution>
+		  </executions>
+		</plugin>
     </plugins>
   </build>
   <organization>
   	<name>Centre for Machine Perception</name>
   	<url>cmp.felk.cvut.cz</url>
   </organization>
+  <artifactId>ckvs</artifactId>
 </project>

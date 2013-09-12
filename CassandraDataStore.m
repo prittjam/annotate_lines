@@ -4,7 +4,7 @@ classdef CassandraDataStore
     
   properties (Constant)
     ConnectorJarFile = fullfile(CassandraDataStore.getClassFilePath(),...
-      '/target/cassandra-connector-0.0.1-SNAPSHOT-jar-with-dependencies.jar');
+      '/target/ckvs-0.0.1-jar-with-dependencies.jar');
     LogLevel = 'DEBUG';
   end
   
