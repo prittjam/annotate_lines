@@ -30,6 +30,14 @@
 		  <lineEnding>unix</lineEnding>
 		</fileSet>
 		<fileSet>
+		  <directory>lib</directory>
+		  <outputDirectory>lib</outputDirectory>
+		  <includes>
+		    <include>*.jar</include>
+		  </includes>
+		  <lineEnding>unix</lineEnding>
+		</fileSet>
+		<fileSet>
 		  <directory>target</directory>
 		  <outputDirectory>target</outputDirectory>
 		  <includes>
