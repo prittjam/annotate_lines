@@ -21,6 +21,7 @@ else
 end
 
 if strcmp(version('-release'),'2010a')
+	error('Matlab R2010a is not supported (no support for custom enumerations).');
 	return;
 end
 
