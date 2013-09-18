@@ -20,6 +20,9 @@ else
   fprintf('\nCassandra-connector already compiled.\n');
 end
 
+if strcmp(version('-release'),'2010a')
+	return;
+end
 
 %% Download guava library
 
@@ -64,7 +67,7 @@ end
 %% Prepare to replace google-collect.jar with guava in static javaclasspath
 
 switch version('-release')
-  case {'2010a','2011b'}
+  case '2011b'
     % In older Matlabs, classpath.txt in current directory is used. It must
     % be a copy of Matlab's classpath file.
     matlabClassPathDir = toolboxdir('local');
