@@ -64,8 +64,8 @@ end
 %% Prepare to replace google-collect.jar with guava in static javaclasspath
 
 switch version('-release')
-  case '2011b'
-    % In Matlab R2011b, classpath.txt in current directory is used. It must
+  case {'2010a','2011b'}
+    % In older Matlabs, classpath.txt in current directory is used. It must
     % be a copy of Matlab's classpath file.
     matlabClassPathDir = toolboxdir('local');
     matlabClassPathFile = fullfile(matlabClassPathDir,'classpath.txt');
