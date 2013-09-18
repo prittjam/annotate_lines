@@ -40,14 +40,17 @@ public class CassCon {
 		ds.storeData(2,"first", "/home/kaja/mozilla.pdf".getBytes());
 
 		//ds.loadData(2,"first");
-		
+
 		
 		System.out.println(String.format("In the table there is: %d rows.", (int)ds.getNumRows()));
 		
 		ds.deleteData(2,"first");
 		
 		
-		
+		String ex = "No";
+		if (ds.existData(2,"first"))
+			ex = "Yop";
+		System.out.println(String.format("The row existence: %s.", ex));
 		
 		casscon.close();
 	}

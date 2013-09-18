@@ -16,7 +16,7 @@ import com.datastax.driver.core.exceptions.AlreadyExistsException;
 public class DataStore {
 	
 	// TODO query data by the tokens. But for that need to get the token intervals of nodes.
-	// TODO support for images (decoding JPEG)
+	// TODO check the consistency of table structures.
 	protected Session session;
 	protected KeySpace keyspace;
 	protected String columnFamily;
@@ -29,6 +29,7 @@ public class DataStore {
 	
 	protected final PreparedStatement storeStatement;
 	protected final PreparedStatement loadStatement;
+	protected final PreparedStatement existStatement;
 	protected final PreparedStatement deleteStatement;
 	
 	public DataStore(Session session, KeySpace keyspace, String columnFamily, 
@@ -52,11 +53,13 @@ public class DataStore {
 		
 		String sq = storeQuery();
 		String lq = loadQuery();
+		String eq = existQuery();
 		String dq = deleteQuery();
 		
 		storeStatement = session.prepare(sq);
 		loadStatement = session.prepare(lq);
 		deleteStatement = session.prepare(dq);
+		existStatement = session.prepare(eq);
 	}
 	
 	public ArrayList<Object> loadData(Object... keys) {
@@ -79,6 +82,22 @@ public class DataStore {
 	public ArrayList<Object> loadData(ArrayList<Object> keys) {
 		Object[] arr = keys.toArray();
 		return loadData(arr);
+	}
+	
+	public boolean existData(Object... keys) {
+		BoundStatement boundStatement = bindData(existStatement, keyColumns, keys);
+		ResultSet rss = session.execute(boundStatement);
+		
+		Row row = rss.one();
+		long res = row.getLong(0);
+		
+		logger.trace("Query for data presence executed");
+		return res > 0;
+	}
+	
+	public boolean existData(ArrayList<Object> keys) {
+		Object[] arr = keys.toArray();
+		return existData(arr);
 	}
 	
 	public void storeData(Object... keysAndData) {
@@ -160,6 +179,22 @@ public class DataStore {
 		StringBuilder qbldr = new StringBuilder();
 		qbldr.append(String.format("SELECT %s FROM %s.%s WHERE ", 
 						dataNames, keyspace.getName(), columnFamily));
+		
+		int numel = keyColumns.size();
+		int i = 0;
+		for (Column col : keyColumns) {
+			qbldr.append(String.format("%s = ?", col.getName()));
+			if (++i < numel)
+				qbldr.append(" AND ");
+		}
+		
+		return qbldr.toString();
+	}
+	
+	protected String existQuery() {				
+		StringBuilder qbldr = new StringBuilder();
+		qbldr.append(String.format("SELECT COUNT(*) FROM %s.%s WHERE ", 
+						keyspace.getName(), columnFamily));
 		
 		int numel = keyColumns.size();
 		int i = 0;

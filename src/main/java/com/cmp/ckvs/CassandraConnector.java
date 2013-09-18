@@ -17,6 +17,7 @@ import com.datastax.driver.core.Session;
 import com.datastax.driver.core.exceptions.AlreadyExistsException;
 
 // TODO remake to builder template, now it is kind of mixed 
+// TODO numRows - allow incomplete definition of the keys, count the number of rows with a particular key
 
 public class CassandraConnector {
 	private Cluster cluster;

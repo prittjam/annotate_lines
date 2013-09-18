@@ -20,7 +20,9 @@ table = 'test4'; % Name of the table
 %    Column type       Accepted Matlab types
 %    INT               Numerical integer values, indexes
 %    TEXT              Matlab string
-%    DATA              Any Matlab data types, serialised into BLOB columns.
+%    RAWDATA           Any Matlab data types, serialised into BLOB columns.
+%                      See helpers.serialize for details.
+%    MDATA             Any Matlab data types, serialised into BLOB columns.
 %                      See helpers.serialize for details.
 %    FILE              Store - String with path to the file,
 %                      Load  - File data in byte array.
@@ -34,7 +36,7 @@ table = 'test4'; % Name of the table
 %                              imread(<stored image path>);
 
 keysStruct = struct('id', ColumnType.INT,'name',ColumnType.TEXT);
-dataStruct = struct('data',ColumnType.DATA);
+dataStruct = struct('data',ColumnType.MDATA);
 
 % Construct the datastore object
 cds = CassandraDataStore(keyspace, table, keysStruct, dataStruct);
@@ -52,6 +54,9 @@ a2 = cds.load(struct('id', 2,'name','tralala'));
 
 % Get number of rows
 fprintf('Num rows: %d\n', double(cds.getNumRows()));
+
+% Check whether a row exist
+fprintf('Exist: %d\n', double(cds.exist(struct('id', 1,'name','tralala'))));
 
 % Delete row defined by key.
 cds.deleteRow(struct('id', 2,'name','tralala'));

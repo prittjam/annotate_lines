@@ -15,9 +15,13 @@ public class IntColumn extends Column {
 
 	@Override
 	public Object prepareData(Object data) {
-		// Matlab, when the 
 		if (!(Integer.class.isAssignableFrom(data.getClass()))) {
-			throw new IllegalArgumentException("The value is not an Integer. The type of the object is: " + data.getClass().getName());				
+			if (!(Double.class.isAssignableFrom(data.getClass()))) {
+				throw new IllegalArgumentException("The value is not an Integer. The type of the object is: " + data.getClass().getName());
+			} else {
+				Double val = (Double)data;
+				data = val.intValue();
+			}
 		}
 		return data;
 	}
