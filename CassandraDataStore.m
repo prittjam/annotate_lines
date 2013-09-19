@@ -263,7 +263,7 @@ classdef CassandraDataStore
      [path, ~] = fileparts(classFname);
    end
    
-   function decenterjavaaddpath(newpath)
+   function decentjavaaddpath(newpath)
      % USeful function for nasty boys from Mathworks
      globalVars = who('global');
      % Save the whales
