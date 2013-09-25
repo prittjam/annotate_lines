@@ -59,7 +59,12 @@ end
 
 if strcmp(installInPrefDir,'Y')
   guavaDir = fullfile(prefdir, libDir);
-  copyfile(guavaJar, guavaDir);
+  if ~exist(guavaDir,'dir')
+    [succ, message] = mkdir(guavaDir);
+    if ~succ, error(message); end
+  end
+  [succ, message] = copyfile(guavaJar, fullfile(guavaDir,guavaFiles(1).name));
+  if ~succ, error(message); end
   guavaJar = fullfile(guavaDir, guavaFiles(1).name);
 end  
 
@@ -105,7 +110,8 @@ switch version('-release')
     end
     
     newClassPathFile = fullfile(classPathFileDir,'javaclasspath.txt');
-    fd = fopen(newClassPathFile,'w');
+    [fd, message] = fopen(newClassPathFile,'w');
+    if fd < 0, error(message); end
     fprintf(fd, '<before>\n%s\n', guavaJar);
     fclose(fd);
     

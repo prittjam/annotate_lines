@@ -4,7 +4,9 @@ s = fileread(inFile);
 
 rs = strrep(s, str, replace);
 
-ofid = fopen(outFile, 'w');
+[ofid, message] = fopen(outFile, 'w');
+if ofid < 0, error(message); end
+
 fprintf(ofid, '%s', rs);
 fclose(ofid);
 
