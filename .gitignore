@@ -1,0 +1,6 @@
+*~
+*.jar
+target
+.settings
+classpath.txt
+javaclasspath.txt

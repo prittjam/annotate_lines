@@ -46,9 +46,9 @@ public class DataStore {
 		allColumns.addAll(dataColumns);
 		
 		if (!this.createTable()) {
-			logger.debug(String.format("Table %s already exist.",columnFamily));
+			logger.info(String.format("Table %s already exist.",columnFamily));
 		} else {
-			logger.debug(String.format("Table %s created.",columnFamily));
+			logger.info(String.format("Table %s created.",columnFamily));
 		}
 		
 		String sq = storeQuery();
