@@ -42,8 +42,8 @@
 		  <groupId>org.apache.maven.plugins</groupId>
 		  <artifactId>maven-assembly-plugin</artifactId>
 		  <configuration>
-		    <descriptor>assembly.xml</descriptor>
-		    <finalName>ckvs-${pom.version}</finalName>
+		    <descriptor>package_all.xml</descriptor>
+ 		    <descriptor>package_bin.xml</descriptor>
 		  </configuration>
 		  <executions>
 		    <execution>

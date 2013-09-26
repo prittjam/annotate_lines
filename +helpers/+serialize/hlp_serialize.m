@@ -47,32 +47,36 @@ function m = hlp_serialize(v)
 %                                in order to compatible with Java
 %                                2013 Karel Lenc
 
-    % dispatch according to type
-    if isnumeric(v) 
-        m = serialize_numeric(v);
-    elseif ischar(v)
-        m = serialize_string(v);
-    elseif iscell(v)
-        m = serialize_cell(v);
-    elseif isstruct(v)
-        m = serialize_struct(v);
-    elseif isa(v,'function_handle')
-        m = serialize_handle(v);
-    elseif islogical(v)
-        m = serialize_logical(v);
-    elseif isobject(v)
-        m = serialize_object(v);
-    elseif isjava(v)
-        warn_once('hlp_serialize:cannot_serialize_java','Cannot properly serialize Java class %s; using a placeholder instead.',class(v));
-        m = serialize_string(['<<hlp_serialize: ' class(v) ' unsupported>>']);
-    else
-        try
-            m = serialize_object(v);
-        catch
-            warn_once('hlp_serialize:unknown_type','Cannot properly serialize object of unknown type "%s"; using a placeholder instead.',class(v));
-            m = serialize_string(['<<hlp_serialize: ' class(v) ' unsupported>>']);
-        end
-    end
+  m = ser(v);
+end
+
+function m = ser(v)
+  % dispatch according to type
+  if isnumeric(v) 
+      m = serialize_numeric(v);
+  elseif ischar(v)
+      m = serialize_string(v);
+  elseif iscell(v)
+      m = serialize_cell(v);
+  elseif isstruct(v)
+      m = serialize_struct(v);
+  elseif isa(v,'function_handle')
+      m = serialize_handle(v);
+  elseif islogical(v)
+      m = serialize_logical(v);
+  elseif isobject(v)
+      m = serialize_object(v);
+  elseif isjava(v)
+      warn_once('hlp_serialize:cannot_serialize_java','Cannot properly serialize Java class %s; using a placeholder instead.',class(v));
+      m = serialize_string(['<<hlp_serialize: ' class(v) ' unsupported>>']);
+  else
+      try
+          m = serialize_object(v);
+      catch
+          warn_once('hlp_serialize:unknown_type','Cannot properly serialize object of unknown type "%s"; using a placeholder instead.',class(v));
+          m = serialize_string(['<<hlp_serialize: ' class(v) ' unsupported>>']);
+      end
+  end
 end
 
 % single scalar
@@ -153,7 +157,7 @@ end
 
 % Cell array of heterogenous contents
 function m = serialize_cell_heterogenous(v)
-    contents = cellfun(@hlp_serialize,v,'UniformOutput',false);
+    contents = cellfun(@ser,v,'UniformOutput',false);
     m = [int8(33); ndims(v); typecast(uint32(size(v)),'int8').'; vertcat(contents{:})];
 end
 
@@ -218,7 +222,7 @@ function m = serialize_cell(v)
                 m = [int8(37); class2tag(class(v{1})); ndims(v); typecast(uint32(size(v)),'int8').'];
             elseif length(unique(cellfun(@class,v(:),'UniformOutput',false))) == 1
                 % of uniform class with prototype
-                m = [int8(38); hlp_serialize(class(v{1})); ndims(v); typecast(uint32(size(v)),'int8').'];
+                m = [int8(38); ser(class(v{1})); ndims(v); typecast(uint32(size(v)),'int8').'];
             else
                 % of arbitrary classes
                 m = serialize_cell_heterogenous(v);
@@ -237,7 +241,7 @@ function m = serialize_object(v)
         conts = saveobj(v);
         if isstruct(conts) || iscell(conts) || isnumeric(conts) || ischar(conts) || islogical(conts) || isa(conts,'function_handle')
             % contents is something that we can readily serialize
-            conts = hlp_serialize(conts);
+            conts = ser(conts);
         else
             % contents is still an object: turn into a struct now
             conts = serialize_struct(struct(conts));

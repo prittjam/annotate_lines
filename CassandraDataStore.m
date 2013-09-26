@@ -8,12 +8,14 @@ classdef CassandraDataStore
   %   field allocation...
   
   % TODO change the cool stuff with the conversions in java etc. to hooks,
-  % rather than to column types. It would be much more clear then.
+  % rather than to column types. It would be much clearer then.
     
   properties (Constant)
     ConnectorJarFile = fullfile(CassandraDataStore.getClassFilePath(),...
       '/target/ckvs-0.0.1-jar-with-dependencies.jar');
-    LogLevel = 'DEBUG';
+    % Change this to any log4j level to limit the verbosity. Before the
+    % changes take effect, 'clear all' must be called.
+    LogLevel = 'INFO'; 
   end
   
   properties (SetAccess = protected, GetAccess = public)
@@ -263,7 +265,7 @@ classdef CassandraDataStore
      [path, ~] = fileparts(classFname);
    end
    
-   function decenterjavaaddpath(newpath)
+   function decentjavaaddpath(newpath)
      % USeful function for nasty boys from Mathworks
      globalVars = who('global');
      % Save the whales
