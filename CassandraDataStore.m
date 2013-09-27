@@ -80,12 +80,7 @@ classdef CassandraDataStore
       
       obj.Opts = helpers.vl_argparse(obj.Opts, varargin);
       
-      jvNodes = CassandraDataStore.cellToJvStringArr(cellstr(obj.Opts.nodes));
-      obj.jvCassConn = com.cmp.ckvs.CassandraConnector();
-      obj.jvCassConn.connect(jvNodes);
-      if obj.Opts.port > -1
-        obj.jvCassConn.setPort(obj.Opts.port);
-      end
+      obj.jvCassConn = obj.getConnection();
       
       jvKeyColumns = CassandraDataStore.matlabDataStruct2Java(keysStructure, true);
       jvDataColumns = CassandraDataStore.matlabDataStruct2Java(valuesStructure, false);
@@ -201,6 +196,30 @@ classdef CassandraDataStore
     
     function delete(obj)
       obj.close();
+    end
+    
+    function conn = getConnection(obj)
+      persistent connPool; % Imitation of a static variable
+      if isempty(connPool)
+        connPool = containers.Map();
+      end
+      
+      nodes = cellstr(obj.Opts.nodes);
+      connSpec = [[nodes{:}] num2str(obj.Opts.port)];
+      if ~connPool.isKey(connSpec)
+        conn = com.cmp.ckvs.CassandraConnector();
+        if obj.Opts.port > -1
+          conn.setPort(obj.Opts.port);
+        end
+        connPool(connSpec) = conn;
+      else
+        conn = connPool(connSpec);
+      end
+      
+      if ~conn.isConnected()
+        jvNodes = CassandraDataStore.cellToJvStringArr(cellstr(obj.Opts.nodes));
+        conn.connect(jvNodes);
+      end
     end
   end
   

@@ -18,16 +18,22 @@ import com.datastax.driver.core.exceptions.AlreadyExistsException;
 
 // TODO remake to builder template, now it is kind of mixed 
 // TODO numRows - allow incomplete definition of the keys, count the number of rows with a particular key
+// TODO HAVE CONNECTION AS SINGLETON!
 
 public class CassandraConnector {
 	private Cluster cluster;
 	private Session session;
 	private Logger logger;
 	private int port = -1;
-	boolean isConnected = false;
+	protected boolean isConnected = false;
 	
 	private ArrayList<KeySpace> keySpaces = new ArrayList<KeySpace>();
 
+	public boolean isConnected() {
+		return isConnected;
+	}
+	
+	
 	public int getPort() {
 		return port;
 	}
