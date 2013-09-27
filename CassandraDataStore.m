@@ -56,9 +56,15 @@ classdef CassandraDataStore
           'replacing google-collect.jar with guava-14.0.1.jar library ' ,...
           '(available at http://code.google.com/p/guava-libraries/).']);
       end
+      
+      if ~obj.checkGCClass()
+         error(['Guava library has not been properly loaded. Is ', ...
+           guavaClassPath ' a valid jar file?']);
+      end
+      
       java.lang.System.setProperty('casscon.loglevel',obj.LogLevel);
 
-      if ~ismember(obj.ConnectorJarFile,javaclasspath('-dynamic'))
+      if ~ismember(obj.ConnectorJarFile,javaclasspath('-dynamic')) 
         warning('Knock-Knock - Matlab is going to delete all your global variables!');
         obj.decentjavaaddpath(obj.ConnectorJarFile);
       end
@@ -301,6 +307,12 @@ classdef CassandraDataStore
        eval(sprintf('global %s', globalVars{iVar}));
        eval(sprintf('%s = values.%s;',globalVars{iVar},globalVars{iVar}));
      end
+   end
+   
+   function isGuava = checkGCClass()
+     b = com.google.common.collect.ImmutableSet.builder();
+     classPath = b.getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
+     isGuava = isempty(strfind(classPath,'google-collect.jar'));
    end
   end
   
