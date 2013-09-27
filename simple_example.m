@@ -2,9 +2,6 @@
 % In order to run this test, the connector must be installed, run the script:
 %   install;
 
-clear all;
-clear java;
-
 % For cassandra data modeling see:
 % http://www.datastax.com/documentation/cql/3.0/webhelp/index.html#cql/ddl/ddl_anatomy_table_c.html
 keyspace = 'matlab';

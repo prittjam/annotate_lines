@@ -56,9 +56,15 @@ classdef CassandraDataStore
           'replacing google-collect.jar with guava-14.0.1.jar library ' ,...
           '(available at http://code.google.com/p/guava-libraries/).']);
       end
+      
+      if ~obj.checkGCClass()
+         error(['Guava library has not been properly loaded. Is ', ...
+           guavaClassPath ' a valid jar file?']);
+      end
+      
       java.lang.System.setProperty('casscon.loglevel',obj.LogLevel);
 
-      if ~ismember(obj.ConnectorJarFile,javaclasspath('-dynamic'))
+      if ~ismember(obj.ConnectorJarFile,javaclasspath('-dynamic')) 
         warning('Knock-Knock - Matlab is going to delete all your global variables!');
         obj.decentjavaaddpath(obj.ConnectorJarFile);
       end
@@ -80,12 +86,7 @@ classdef CassandraDataStore
       
       obj.Opts = helpers.vl_argparse(obj.Opts, varargin);
       
-      jvNodes = CassandraDataStore.cellToJvStringArr(cellstr(obj.Opts.nodes));
-      obj.jvCassConn = com.cmp.ckvs.CassandraConnector();
-      obj.jvCassConn.connect(jvNodes);
-      if obj.Opts.port > -1
-        obj.jvCassConn.setPort(obj.Opts.port);
-      end
+      obj.jvCassConn = obj.getConnection();
       
       jvKeyColumns = CassandraDataStore.matlabDataStruct2Java(keysStructure, true);
       jvDataColumns = CassandraDataStore.matlabDataStruct2Java(valuesStructure, false);
@@ -202,6 +203,30 @@ classdef CassandraDataStore
     function delete(obj)
       obj.close();
     end
+    
+    function conn = getConnection(obj)
+      persistent connPool; % Imitation of a static variable
+      if isempty(connPool)
+        connPool = containers.Map();
+      end
+      
+      nodes = cellstr(obj.Opts.nodes);
+      connSpec = [[nodes{:}] num2str(obj.Opts.port)];
+      if ~connPool.isKey(connSpec)
+        conn = com.cmp.ckvs.CassandraConnector();
+        if obj.Opts.port > -1
+          conn.setPort(obj.Opts.port);
+        end
+        connPool(connSpec) = conn;
+      else
+        conn = connPool(connSpec);
+      end
+      
+      if ~conn.isConnected()
+        jvNodes = CassandraDataStore.cellToJvStringArr(cellstr(obj.Opts.nodes));
+        conn.connect(jvNodes);
+      end
+    end
   end
   
   methods (Static)
@@ -282,6 +307,12 @@ classdef CassandraDataStore
        eval(sprintf('global %s', globalVars{iVar}));
        eval(sprintf('%s = values.%s;',globalVars{iVar},globalVars{iVar}));
      end
+   end
+   
+   function isGuava = checkGCClass()
+     b = com.google.common.collect.ImmutableSet.builder();
+     classPath = b.getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
+     isGuava = isempty(strfind(classPath,'google-collect.jar'));
    end
   end
   

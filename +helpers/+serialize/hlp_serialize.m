@@ -318,7 +318,7 @@ end
 
 % *container* class to byte
 function b = class2tag(cls)
-	switch cls
+    switch cls
 		case 'string'
             b = int8(0);
 		case 'double'

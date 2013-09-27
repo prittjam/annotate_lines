@@ -122,7 +122,7 @@ end
 
 % simple numerical matrix
 function [v,pos] = deserialize_numeric_simple(m,pos)
-classes = {'double','single','int8','int8','int16','uint16','int32','uint32','int64','uint64'};
+classes = {'double','single','int8','uint8','int16','uint16','int32','uint32','int64','uint64'};
 sizes = [8,4,1,1,2,2,4,4,8,8];
 cls = classes{m(pos)-16};
 sz = sizes(m(pos)-16);
