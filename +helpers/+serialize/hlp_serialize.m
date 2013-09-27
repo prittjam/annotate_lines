@@ -318,7 +318,7 @@ end
 
 % *container* class to byte
 function b = class2tag(cls)
-	switch cls
+    switch cls
 		case 'string'
             b = int8(0);
 		case 'double'
@@ -327,7 +327,7 @@ function b = class2tag(cls)
 			b = int8(2);
 		case 'int8'
 			b = int8(3);
-		case 'int8'
+		case 'uint8'
 			b = int8(4);
 		case 'int16'
 			b = int8(5);
