@@ -58,8 +58,7 @@ classdef CassandraDataStore
       end
       
       if ~obj.checkGCClass()
-         error(['Guava library has not been properly loaded. Is ', ...
-           guavaClassPath ' a valid jar file?']);
+         error(['Guava library has not been properly loaded. Is it a valid jar file?']);
       end
       
       java.lang.System.setProperty('casscon.loglevel',obj.LogLevel);
@@ -142,6 +141,11 @@ classdef CassandraDataStore
       
       jvArrList = CassandraDataStore.cellToJvArrList(rr);
       data = obj.jvDataStore.loadData(jvArrList);
+      
+      if data.size() == 0
+        values = [];
+        return;
+      end
       
       values = struct();
       for i = 1:numel(obj.ValueFields)

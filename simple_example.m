@@ -55,6 +55,9 @@ fprintf('Num rows: %d\n', double(cds.getNumRows()));
 % Check whether a row exist
 fprintf('Exist: %d\n', double(cds.exist(struct('id', 1,'name','tralala'))));
 
+a3 = cds.load(struct('id', 3,'name','tralala'));
+fprintf('Empty row: %d\n', isempty(a3));
+
 % Delete row defined by key.
 cds.deleteRow(struct('id', 2,'name','tralala'));
 
