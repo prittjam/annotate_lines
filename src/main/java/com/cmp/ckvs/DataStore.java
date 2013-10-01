@@ -79,6 +79,10 @@ public class DataStore {
 		return results;
 	}
 	
+	public ResultSet executeQuery(String query) {
+		return session.execute(query);
+	}
+	
 	public ArrayList<Object> loadData(ArrayList<Object> keys) {
 		Object[] arr = keys.toArray();
 		return loadData(arr);
