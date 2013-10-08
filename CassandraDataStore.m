@@ -183,6 +183,10 @@ classdef CassandraDataStore
     end
     
     
+    function resultsSet = execute(obj, query)
+      resultsSet = obj.jvDataStore.executeQuery(query);
+    end
+    
     function numRows = getNumRows(obj)
       numRows = obj.jvDataStore.getNumRows();
     end
