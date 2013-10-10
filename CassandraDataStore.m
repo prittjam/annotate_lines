@@ -15,7 +15,7 @@ classdef CassandraDataStore
       '/target/ckvs-0.0.1-jar-with-dependencies.jar');
     % Change this to any log4j level to limit the verbosity. Before the
     % changes take effect, 'clear all' must be called.
-    LogLevel = 'INFO'; 
+    LogLevel = 'WARN';
   end
   
   properties (SetAccess = protected, GetAccess = public)
