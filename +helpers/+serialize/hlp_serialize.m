@@ -92,17 +92,17 @@ function m = serialize_string(v)
         m = [int8(0); typecast(uint32(length(v)),'int8').'; int8(v(:))];
     elseif sum(size(v)) == 0
         % '': special encoding
-        m = int8(200);
+        m = int8(-56);
     else
         % general char array: Tag & Number of dimensions, Dimensions, Data
-        m = [int8(132); ndims(v); typecast(uint32(size(v)),'int8').'; int8(v(:))];
+        m = [int8(-124); ndims(v); typecast(uint32(size(v)),'int8').'; int8(v(:))];
     end
 end
 
 % logical arrays
 function m = serialize_logical(v)
     % Tag & Number of dimensions, Dimensions, Data
-    m = [int8(133); ndims(v); typecast(uint32(size(v)),'int8').'; int8(v(:))];
+    m = [int8(-123); ndims(v); typecast(uint32(size(v)),'int8').'; int8(v(:))];
 end
 
 % non-complex and non-sparse numerical matrix
@@ -115,7 +115,7 @@ end
 function m = serialize_numeric(v)
     if issparse(v)
         % Data Type & Dimensions
-        m = [int8(130); typecast(uint64(size(v,1)), 'int8').'; typecast(uint64(size(v,2)), 'int8').']; % vectorize
+        m = [int8(-126); typecast(uint64(size(v,1)), 'int8').'; typecast(uint64(size(v,2)), 'int8').']; % vectorize
         % Index vectors
         [i,j,s] = find(v);        
         % Real/Complex
@@ -126,7 +126,7 @@ function m = serialize_numeric(v)
         end
     elseif ~isreal(v)
         % Data type & contents
-        m = [int8(131); serialize_numeric_simple(real(v)); serialize_numeric_simple(imag(v))];
+        m = [int8(-125); serialize_numeric_simple(real(v)); serialize_numeric_simple(imag(v))];
     elseif isscalar(v)
         % Scalar
         m = serialize_scalar(v);
@@ -143,7 +143,7 @@ function m = serialize_struct(v)
     fnLengths = [length(fieldNames); cellfun('length',fieldNames)];
     fnChars = [fieldNames{:}];
     dims = [ndims(v) size(v)];
-    m = [int8(128); typecast(uint32(fnLengths(:)).','int8').'; int8(fnChars(:)); typecast(uint32(dims), 'int8').'];
+    m = [int8(-128); typecast(uint32(fnLengths(:)).','int8').'; int8(fnChars(:)); typecast(uint32(dims), 'int8').'];
     % Content.
     if numel(v) > length(fieldNames)
         % more records than field names; serialize each field as a cell array to expose homogenous content
@@ -251,7 +251,7 @@ function m = serialize_object(v)
         conts = serialize_struct(struct(v));
     end
     % Tag, Class name and Contents
-    m = [int8(134); serialize_string(class(v)); conts];
+    m = [int8(-122); serialize_string(class(v)); conts];
 end
 
 % Function handle
@@ -261,7 +261,7 @@ function m = serialize_handle(v)
     switch rep.type
         case 'simple'
             % simple function: Tag & name
-            m = [int8(151); serialize_string(rep.function)];
+            m = [int8(-105); serialize_string(rep.function)];
         case 'anonymous'
             global tracking; %#ok<TLEV>
             if isfield(tracking,'serialize_anonymous_fully') && tracking.serialize_anonymous_fully
@@ -270,7 +270,7 @@ function m = serialize_handle(v)
                 % can reference themselves in their full workspace.
                 persistent handle_stack; %#ok<TLEV>
                 % Tag and Code
-                m = [int8(152); serialize_string(char(v))];
+                m = [int8(-104); serialize_string(char(v))];
                 % take care of self-references
                 str = java.lang.String(rep.function);
                 func_id = str.hashCode();
@@ -302,14 +302,14 @@ function m = serialize_handle(v)
             else
                 % anonymous function: Tag, Code, and reduced workspace
                 if ~isempty(rep.workspace)
-                    m = [int8(152); serialize_string(char(v)); serialize_struct(rep.workspace{1})];
+                    m = [int8(-104); serialize_string(char(v)); serialize_struct(rep.workspace{1})];
                 else
-                    m = [int8(152); serialize_string(char(v)); serialize_struct(struct())];
+                    m = [int8(-104); serialize_string(char(v)); serialize_struct(struct())];
                 end
             end
         case {'scopedfunction','nested'}
             % scoped function: Tag and Parentage
-            m = [int8(153); serialize_cell(rep.parentage)];
+            m = [int8(-103); serialize_cell(rep.parentage)];
         otherwise
             warn_once('hlp_serialize:unknown_handle_type','A function handle with unsupported type "%s" was encountered; using a placeholder instead.',rep.type); 
             m = serialize_string(['<<hlp_serialize: function handle of type ' rep.type ' unsupported>>']);
@@ -359,27 +359,27 @@ function b = class2tag(cls)
         % case 'cellbools'
         %   b = int8(39);
         % case 'struct'
-        %   b = int8(128);
+        %   b = int8(-128);
         % case 'sparse'
-        %   b = int8(130);
+        %   b = int8(-126);
         % case 'complex'
-        %   b = int8(131);
+        %   b = int8(-125);
         % case 'char'
-        %   b = int8(132);
+        %   b = int8(-124);
         % case 'logical'
-        %	b = int8(133);
+        %	b = int8(-123);
         % case 'object'
-        %   b = int8(134);
+        %   b = int8(-122);
         % case 'function_handle'
         % 	b = int8(150);
         % case 'function_simple'
-        % 	b = int8(151);
+        % 	b = int8(-105);
         % case 'function_anon'
-        % 	b = int8(152);
+        % 	b = int8(-104);
         % case 'function_scoped'
-        % 	b = int8(153);
+        % 	b = int8(-103);
         % case 'emptystring'
-        %   b = int8(200);
+        %   b = int8(-56);
 
 		otherwise
 			error('Unknown class');

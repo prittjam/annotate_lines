@@ -34,27 +34,27 @@ end
 % dispatch
 function [v,pos] = deserialize_value(m,pos)
 switch m(pos)
-    case {0,200}
+    case {0,-56}
         [v,pos] = deserialize_string(m,pos);
-    case 128
+    case -128
         [v,pos] = deserialize_struct(m,pos);
     case {33,34,35,36,37,38,39}
         [v,pos] = deserialize_cell(m,pos);
     case {1,2,3,4,5,6,7,8,9,10}
         [v,pos] = deserialize_scalar(m,pos);
-    case 133
+    case -123
         [v,pos] = deserialize_logical(m,pos);
-    case {151,152,153}
+    case {-105,-104,-103}
         [v,pos] = deserialize_handle(m,pos);
     case {17,18,19,20,21,22,23,24,25,26}
         [v,pos] = deserialize_numeric_simple(m,pos);
-    case 130
+    case -126
         [v,pos] = deserialize_sparse(m,pos);
-    case 131
+    case -125
         [v,pos] = deserialize_complex(m,pos);
-    case 132
+    case -124
         [v,pos] = deserialize_char(m,pos);
-    case 134
+    case -122
         [v,pos] = deserialize_object(m,pos);
     otherwise
         error('Unknown class');
@@ -258,7 +258,7 @@ switch kind
                 prot = [];
             case 33  % cell - {}
                 prot = {};
-            case 128 % struct - struct()
+            case -128 % struct - struct()
                 prot = struct();
             otherwise
                 error('Unsupported type tag.');
@@ -336,7 +336,7 @@ function [v,pos] = deserialize_handle(m,pos)
 kind = m(pos);
 pos = pos + 1;
 switch kind
-    case 151 % simple function
+    case -105 % simple function
         persistent db_simple; %#ok<TLEV> % database of simple functions (indexed by name)
         % Name
         [name,pos] = deserialize_string(m,pos);
@@ -348,14 +348,14 @@ switch kind
             v = str2func(name);
             db_simple.(name) = v;
         end
-    case 152 % anonymous function
+    case -104 % anonymous function
         % Function code
         [code,pos] = deserialize_string(m,pos);
         % Workspace
         [wspace,pos] = deserialize_struct(m,pos);
         % Construct
         v = restore_function(code,wspace);
-    case 153 % scoped or nested function
+    case -103 % scoped or nested function
         persistent db_nested; %#ok<TLEV> % database of nested functions (indexed by name)
         % Parents
         [parentage,pos] = deserialize_cell(m,pos);
