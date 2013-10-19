@@ -10,7 +10,7 @@ public class CassCon {
 		BasicConfigurator.configure();
 		
 		CassandraConnector casscon = new CassandraConnector();
-		casscon.connect("woska","tarski");
+		casscon.connect("tarski");
 		
 		ArrayList<KeySpace> kspcs = null;
 		try {
@@ -39,7 +39,7 @@ public class CassCon {
 		//ds.storeData(2,"first", "/home/kaja/mozilla.pdf");
 		ds.storeData(2,"first", "/home/kaja/mozilla.pdf".getBytes());
 
-		//ds.loadData(2,"first");
+		ds.loadData(2,"first");
 
 		
 		System.out.println(String.format("In the table there is: %d rows.", (int)ds.getNumRows()));

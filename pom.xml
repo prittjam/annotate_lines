@@ -43,7 +43,6 @@
 		  <artifactId>maven-assembly-plugin</artifactId>
 		  <configuration>
 		    <descriptor>package_all.xml</descriptor>
- 		    <descriptor>package_bin.xml</descriptor>
 		  </configuration>
 		  <executions>
 		    <execution>

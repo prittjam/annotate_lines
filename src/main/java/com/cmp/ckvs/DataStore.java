@@ -131,7 +131,7 @@ public class DataStore {
 	
 	
 	public long getNumRows() {
-		String query = String.format("SELECT COUNT(*) FROM %s.%s",
+		String query = String.format("SELECT COUNT(*) FROM \"%s\".\"%s\"",
 				keyspace.getName(), columnFamily);
 		ResultSet res = session.execute(query);
 		Row rr = res.one();
@@ -171,7 +171,7 @@ public class DataStore {
 		
 		int qmnum = keyColumns.size() + dataColumns.size();
 		
-		String query = String.format("INSERT INTO %s.%s (%s, %s) VALUES (%s);", 
+		String query = String.format("INSERT INTO \"%s\".\"%s\" (%s, %s) VALUES (%s);", 
 						keyspace.getName(), columnFamily, keyNames, dataNames,
 						genRepeatedString("?", ", ", qmnum));
 		return query;
@@ -181,13 +181,13 @@ public class DataStore {
 		String dataNames = getColumnNamesString(dataColumns);
 				
 		StringBuilder qbldr = new StringBuilder();
-		qbldr.append(String.format("SELECT %s FROM %s.%s WHERE ", 
+		qbldr.append(String.format("SELECT %s FROM \"%s\".\"%s\" WHERE ", 
 						dataNames, keyspace.getName(), columnFamily));
 		
 		int numel = keyColumns.size();
 		int i = 0;
 		for (Column col : keyColumns) {
-			qbldr.append(String.format("%s = ?", col.getName()));
+			qbldr.append(String.format("\"%s\" = ?", col.getName()));
 			if (++i < numel)
 				qbldr.append(" AND ");
 		}
@@ -197,13 +197,13 @@ public class DataStore {
 	
 	protected String existQuery() {				
 		StringBuilder qbldr = new StringBuilder();
-		qbldr.append(String.format("SELECT COUNT(*) FROM %s.%s WHERE ", 
+		qbldr.append(String.format("SELECT COUNT(*) FROM \"%s\".\"%s\" WHERE ", 
 						keyspace.getName(), columnFamily));
 		
 		int numel = keyColumns.size();
 		int i = 0;
 		for (Column col : keyColumns) {
-			qbldr.append(String.format("%s = ?", col.getName()));
+			qbldr.append(String.format("\"%s\" = ?", col.getName()));
 			if (++i < numel)
 				qbldr.append(" AND ");
 		}
@@ -213,13 +213,13 @@ public class DataStore {
 	
 	protected String deleteQuery() {				
 		StringBuilder qbldr = new StringBuilder();
-		qbldr.append(String.format("DELETE FROM %s.%s WHERE ", 
+		qbldr.append(String.format("DELETE FROM \"%s\".\"%s\" WHERE ", 
 				keyspace.getName(), columnFamily));
 		
 		int numel = keyColumns.size();
 		int i = 0;
 		for (Column col : keyColumns) {
-			qbldr.append(String.format("%s = ?", col.getName()));
+			qbldr.append(String.format("\"%s\" = ?", col.getName()));
 			if (++i < numel)
 				qbldr.append(" AND ");
 		}
@@ -234,7 +234,7 @@ public class DataStore {
 				+ getColumnTypesString(dataColumns);
 		String keyNames = getColumnNamesString(keyColumns);
 
-		String query = String.format("CREATE TABLE %s.%s ( %s, PRIMARY KEY (%s));", 
+		String query = String.format("CREATE TABLE \"%s\".\"%s\" ( %s, PRIMARY KEY (%s));", 
 						keyspace.getName(), columnFamily, columnTypes, keyNames);
 		try {
 			session.execute(query);
@@ -261,7 +261,9 @@ public class DataStore {
 		int numel = columns.size();
 		int i = 0;
 		for (Column column : columns) {
+			bldr.append("\"");
 			bldr.append(column.getName());
+			bldr.append("\"");
 			if (++i < numel)
 				bldr.append(", ");	
 		}
