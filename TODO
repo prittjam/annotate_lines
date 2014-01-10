@@ -1,5 +1,0 @@
-
-
-# 27/9/13
-Somehow, maven when packs liguava into to the assembly, it fucks up the jar archive...
-Libguava has got 3.1MB instead of 2.1MB and is not the valid jar archive.

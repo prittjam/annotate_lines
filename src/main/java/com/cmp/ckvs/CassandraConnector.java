@@ -20,27 +20,29 @@ import com.datastax.driver.core.exceptions.AlreadyExistsException;
 // TODO numRows - allow incomplete definition of the keys, count the number of rows with a particular key
 // TODO HAVE CONNECTION AS SINGLETON!
 
+/**
+ * Connector to the Cassandra implmeneting the key/value store
+ * paradigm.
+ * 
+ * Handles the connection and allows building new DataStores which
+ * represent a single table in Cassandra.
+ * 
+ * Before a DataStore can be built, the connection has to be established
+ * (connection port set by setPort method, seed nodes parameters of connect).
+ * 
+ * @author Karel Lenc
+ *
+ */
 public class CassandraConnector {
 	private Cluster cluster;
 	private Session session;
 	private Logger logger;
 	private int port = -1;
 	protected boolean isConnected = false;
-	
-	private ArrayList<KeySpace> keySpaces = new ArrayList<KeySpace>();
 
-	public boolean isConnected() {
-		return isConnected;
-	}
-	
-	
-	public int getPort() {
-		return port;
-	}
-	public void setPort(int port) {
-		this.port = port;
-	}
-	
+	/**
+	 * Construct a CassandraConnector instance.
+	 */
 	public CassandraConnector() {
 	    LogManager.resetConfiguration();
 	    BasicConfigurator.configure();
@@ -48,18 +50,11 @@ public class CassandraConnector {
 	    LogManager.getRootLogger().setLevel(Level.toLevel(level));
 		logger = Logger.getLogger("com.cmp.wbs.casscon.cassandraconnector");
 	}
-
-	public DataStore buildDataStore(KeySpace keyspace, String columnFamily,
-			List<Column> keyColumns,
-			List<Column> dataColumns) {
-		if (!isConnected)
-			throw new IllegalStateException("Unable to create a datastore when not connected");
-		if (!createKeyspace(keyspace)) {
-			logger.info(String.format("Keyspace %s already exists.",keyspace.getName()));
-		}
-		return new DataStore(session, keyspace, columnFamily, keyColumns, dataColumns);
-	}	
 	
+	/**
+	 * Connect to cassandra cluster. If unsuccessful (? TBD)
+	 * @param nodes VARARG seed nodes
+	 */
 	public void connect(String... nodes) {
 		Cluster.Builder builder = Cluster.builder();
 		
@@ -80,14 +75,40 @@ public class CassandraConnector {
 		isConnected = true;
 	}
 	
+	/**
+	 * Close a connection to Cassandra cluster.
+	 */
 	public void close() {
 		session.shutdown();
 		cluster.shutdown();
 		isConnected = false;
 	}
 	
+	/**
+	 * Build a new instance of a DataStore.
+	 * @param keyspace The definition of the KeySpace
+	 * @param columnFamily Name of the CF (Table name)
+	 * @param keyColumns Definition of the key columns 
+	 * @param dataColumns Definition of the value columns
+	 * @return A new instance of the DataStore handling the defined storage
+	 */
+	public DataStore buildDataStore(KeySpace keyspace, String columnFamily,
+			List<Column> keyColumns,
+			List<Column> dataColumns) {
+		if (!isConnected)
+			throw new IllegalStateException("Unable to create a datastore when not connected");
+		if (!createKeyspace(keyspace)) {
+			logger.info(String.format("Keyspace %s already exists.",keyspace.getName()));
+		}
+		return new DataStore(session, keyspace, columnFamily, keyColumns, dataColumns);
+	}	
 	
-	public ResultSet executeQuer(String query) {
+	/**
+	 * Execute a single CQL query on the connected cluster.
+	 * @param query The query
+	 * @return Results
+	 */
+	public ResultSet executeQuery(String query) {
 		if (!isConnected)
 			throw new IllegalStateException("Unable to execute query when not connected");
 		
@@ -95,9 +116,16 @@ public class CassandraConnector {
 		return res;
 	}
 	
+	/**
+	 * Get the list of all KeySpaces in the cassandra cluster.
+	 * @return List of alll KeySpaces in the cluster.
+	 * @throws NoSuchFieldException
+	 */
 	public ArrayList<KeySpace> loadKeyspaces() throws NoSuchFieldException {
 		if (!isConnected)
 			throw new IllegalStateException("Unable to load keyspaces when not connected");
+		
+		ArrayList<KeySpace> keySpaces = new ArrayList<KeySpace>();
 		
 		ResultSet results = session.execute("SELECT * from system.schema_keyspaces");
 		for (Row row : results) {
@@ -108,6 +136,11 @@ public class CassandraConnector {
 		return keySpaces;
 	}
 	
+	/**
+	 * Create a new KeySpace.
+	 * @param ksp The KeySpace definition.
+	 * @return True if success.
+	 */
 	public boolean createKeyspace(KeySpace ksp) {
 		boolean success = true;
 		String query = ksp.getCreateQuery();
@@ -118,4 +151,25 @@ public class CassandraConnector {
 		}
 		return success;
 	}
+	
+	/**
+	 * Check whether the instance is connected to cassandra.
+	 * @return True if connected.
+	 */
+	public boolean isConnected() {
+		return isConnected;
+	}
+	
+	public int getPort() {
+		return port;
+	}
+	
+	/**
+	 * Set the connection port to the Cassandra cluster.
+	 * @param port Port number.
+	 */
+	public void setPort(int port) {
+		this.port = port;
+	}
+	
 }

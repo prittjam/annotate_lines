@@ -5,8 +5,15 @@ import java.util.regex.Pattern;
 
 import com.datastax.driver.core.Row;
 
-// TODO handle other than SimpleStrategy keyspaces
-
+/**
+ * Keyspace definition with its properties.
+ * Currently supports only Simple replication strategy.
+ * For creating a keyspace, use the KeySpace.builder()
+ * implementing the builder pattern.
+ * 
+ * @author Karel Lenc
+ *
+ */
 public class KeySpace {
 	private int replicationFactor;
 	private String strategy;

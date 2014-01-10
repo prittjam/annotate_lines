@@ -13,9 +13,18 @@ import com.datastax.driver.core.Row;
 import com.datastax.driver.core.Session;
 import com.datastax.driver.core.exceptions.AlreadyExistsException;
 
+/**
+ * Representation a single Column Family in Cassandra
+ * used in the key/value store paradigm.
+ * 
+ * Implements generation of the CQL queries based on the
+ * storage structure. Uses prepared statements.
+ * 
+ * @author Karel Lenc
+ *
+ */
 public class DataStore {
 	
-	// TODO query data by the tokens. But for that need to get the token intervals of nodes.
 	// TODO check the consistency of table structures.
 	protected Session session;
 	protected KeySpace keyspace;
@@ -32,6 +41,15 @@ public class DataStore {
 	protected final PreparedStatement existStatement;
 	protected final PreparedStatement deleteStatement;
 	
+	/**
+	 * Construct a wrapper around a column family. If the CF does not exist,
+	 * create one.
+	 * @param session Reference to an open Session to Cassandra
+	 * @param keyspace Reference to a keyspace where the CF is located
+	 * @param columnFamily Name of the Column family
+	 * @param keyColumns Definition of the columns used as keys
+	 * @param dataColumns Definition of the columns used as values
+	 */
 	public DataStore(Session session, KeySpace keyspace, String columnFamily, 
 			List<Column> keyColumns, List<Column> dataColumns) {
 		
@@ -56,12 +74,27 @@ public class DataStore {
 		String eq = existQuery();
 		String dq = deleteQuery();
 		
+		// Prepare the statements
 		storeStatement = session.prepare(sq);
 		loadStatement = session.prepare(lq);
 		deleteStatement = session.prepare(dq);
 		existStatement = session.prepare(eq);
 	}
 	
+	/**
+	 * Execute a CQL query
+	 * @param query The query (String)
+	 * @return The result in ResultSet
+	 */
+	public ResultSet executeQuery(String query) {
+		return session.execute(query);
+	}
+	
+	/**
+	 * Load data from the table defined by the keys.
+	 * @param keys VARARG the keys.
+	 * @return Array list of the value columns contents
+	 */
 	public ArrayList<Object> loadData(Object... keys) {
 		BoundStatement boundStatement = bindData(loadStatement, keyColumns, keys);
 		ResultSet rss = session.execute(boundStatement);
@@ -79,15 +112,16 @@ public class DataStore {
 		return results;
 	}
 	
-	public ResultSet executeQuery(String query) {
-		return session.execute(query);
-	}
-	
 	public ArrayList<Object> loadData(ArrayList<Object> keys) {
 		Object[] arr = keys.toArray();
 		return loadData(arr);
 	}
 	
+	/**
+	 * Check whether a row defined by the keys does exist
+	 * @param keys The keys
+	 * @return True if does.
+	 */
 	public boolean existData(Object... keys) {
 		BoundStatement boundStatement = bindData(existStatement, keyColumns, keys);
 		ResultSet rss = session.execute(boundStatement);
@@ -104,6 +138,10 @@ public class DataStore {
 		return existData(arr);
 	}
 	
+	/**
+	 * Store data into the table
+	 * @param keysAndData Keys followed by the values to be stored.
+	 */
 	public void storeData(Object... keysAndData) {
 		
 		BoundStatement boundStatement = bindData(storeStatement, allColumns, 
@@ -117,6 +155,10 @@ public class DataStore {
 		storeData(arr);
 	}
 	
+	/**
+	 * Delete a row defined by the keys.
+	 * @param keys Row definition to be deleted.
+	 */
 	public void deleteData(Object... keys) {
 		BoundStatement boundStatement = bindData(deleteStatement, keyColumns, keys);
 		session.execute(boundStatement);
@@ -129,7 +171,11 @@ public class DataStore {
 		deleteData(arr);
 	}
 	
-	
+	/**
+	 * Get number of rows in the table.
+	 * Note: For big tables ends in timeout.
+	 * @return Number of rows.
+	 */
 	public long getNumRows() {
 		String query = String.format("SELECT COUNT(*) FROM \"%s\".\"%s\"",
 				keyspace.getName(), columnFamily);
