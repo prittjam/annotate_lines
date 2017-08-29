@@ -58,6 +58,8 @@ handles.output = hObject;
 % Update handles structure
 guidata(hObject, handles);
 
+addpath(genpath('external/edges'));
+
 % UIWAIT makes annotate_lines wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
@@ -148,7 +150,7 @@ if ~isequal(file_name, 0)
     if ~isequal(file_name_end, '.mat') 
         uistate.handles.img = imshow(imread([path file_name]),'Parent',gca);    axis off;
         
-        [E,o] = extract_contours(img,varargin);
+        [E,o] = extract_contours(uistate.handles.img);
         
         %        set(uistate.handles.img,'HitTest','on');
 %        set(uistate.handles.img,'ButtonDownFcn',@image_click_callback);
