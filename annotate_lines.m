@@ -58,6 +58,7 @@ handles.output = hObject;
 % Update handles structure
 guidata(hObject, handles);
 addpath(genpath('external'));
+addpath(genpath('~/opt/mex'));
 
 % UIWAIT makes annotate_lines wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
@@ -160,8 +161,13 @@ if ~isequal(file_name, 0)
         [~,ind] = sort(sz,'descend');
         sind = ind(1:100);
         sC = C(sind);
-        aa = VChooseK([1:numel(sC)]); 
+        l = zeros(3,numel(sind));
+        for k = 1:numel(sC)
+            l(:,k) = LINE.fit(sC{k});
+        end
+        D = pdist(l(:,1:2)','cosine');
         keyboard;
+        vck = VChooseK([1:numel(sC)],2); 
         
         %        set(uistate.handles.img,'HitTest','on');
 %        set(uistate.handles.img,'ButtonDownFcn',@image_click_callback);
