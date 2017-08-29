@@ -57,11 +57,7 @@ handles.output = hObject;
 
 % Update handles structure
 guidata(hObject, handles);
-
-addpath(genpath('external/edges'));
-addpath(genpath('external/toolbox'));
-addpath(genpath('external/cvdb'));
-addpath(genpath('external/features'));
+addpath(genpath('external'));
 
 % UIWAIT makes annotate_lines wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
@@ -151,13 +147,21 @@ uistate = guidata(gcf);
 if ~isequal(file_name, 0)
     [~,uistate.file_name_base,file_name_end] = fileparts(file_name);  
     if ~isequal(file_name_end, '.mat') 
+        pth = pwd;
         uistate.img = Img( 'url',file_name);       
         uistate.handles.img = imshow(uistate.img.data,'Parent',gca);    
         uistate.cid_cache = CASS.CidCache(uistate.img.cid);
         contour_list = uistate.cid_cache.get('dr','contours'); 
         [E,o] = extract_contours(uistate.img.data);
+        cd(pth);
+        pts = DL.segment_contours(E);
+        C = cmp_splitapply(@(x) { x },[pts(:).x],[pts(:).G]);
+        sz = cmp_splitapply(@(x)  numel(x) ,[pts(:).x],[pts(:).G]);
+        [~,ind] = sort(sz,'descend');
+        sind = ind(1:100);
+        sC = C(sind);
+        VChooseK([1:numel(sC)]);
         keyboard;
-        pts = segment_contours(E);
         
         %        set(uistate.handles.img,'HitTest','on');
 %        set(uistate.handles.img,'ButtonDownFcn',@image_click_callback);
