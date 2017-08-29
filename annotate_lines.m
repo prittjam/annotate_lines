@@ -59,6 +59,8 @@ handles.output = hObject;
 guidata(hObject, handles);
 
 addpath(genpath('external/edges'));
+addpath(genpath('external/toolbox'));
+addpath(genpath('external/cvdb'));
 
 % UIWAIT makes annotate_lines wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
@@ -148,9 +150,15 @@ uistate = guidata(gcf);
 if ~isequal(file_name, 0)
     [~,uistate.file_name_base,file_name_end] = fileparts(file_name);  
     if ~isequal(file_name_end, '.mat') 
-        uistate.handles.img = imshow(imread([path file_name]),'Parent',gca);    axis off;
-        
-        [E,o] = extract_contours(uistate.handles.img);
+        uistate.img = imread([path file_name]);
+        uistate.handles.img = imshow(uistate.img,'Parent',gca);    
+        img = Img('data',uistate.img, ...
+                  'url',file_name);       
+        uistate.cid_cache = CASS.CidCache(img_metadata.cid, cache_params{:});
+        axis off;
+
+        [E,o] = extract_contours(uistate.img);
+
         
         %        set(uistate.handles.img,'HitTest','on');
 %        set(uistate.handles.img,'ButtonDownFcn',@image_click_callback);
