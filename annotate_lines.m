@@ -165,9 +165,10 @@ if ~isequal(file_name, 0)
         for k = 1:numel(sC)
             l(:,k) = LINE.fit(sC{k});
         end
-        D = pdist(l(:,1:2)','cosine');
+        D = pdist(l(1:2,:)','cosine');
+        ind = D < 0.2618;
         keyboard;
-        vck = VChooseK([1:numel(sC)],2); 
+        %        itril()
         
         %        set(uistate.handles.img,'HitTest','on');
 %        set(uistate.handles.img,'ButtonDownFcn',@image_click_callback);
