@@ -139,3 +139,30 @@ function openfile_ClickedCallback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+uistate = guidata(gcf);
+    
+[file_name,path] = uigetfile({'*.png;*.jpg;*.gif;*.JPG','Pictures (*.png,*.jpg,*.gif)';'*.mat', 'Repeats (*.mat)'});
+
+if ~isequal(file_name, 0)
+    [~,uistate.file_name_base,file_name_end] = fileparts(file_name);  
+    if ~isequal(file_name_end, '.mat') 
+        uistate.handles.img = imshow(imread([path file_name]),'Parent',gca);    axis off;
+        
+        [E,o] = extract_contours(img,varargin);
+        
+        %        set(uistate.handles.img,'HitTest','on');
+%        set(uistate.handles.img,'ButtonDownFcn',@image_click_callback);
+%        uistate.plane_list = cell(1,0);
+%        uistate.cur_plane = 0;
+%        uistate.cur_repeat(1) = 0;
+%        uistate.number_of_grids = cell(1,0);
+%        uistate.file_name = file_name;
+%        uistate.path = path;
+%        uistate.outlier = struct('h',[],'select',false);
+%        uistate.ignore = struct('h',[],'select',false);
+
+        guidata(gcf,uistate); 
+    end;
+end
+
+guidata(gcf,uistate);
