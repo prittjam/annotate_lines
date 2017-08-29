@@ -160,7 +160,7 @@ if ~isequal(file_name, 0)
         [~,ind] = sort(sz,'descend');
         sind = ind(1:100);
         sC = C(sind);
-        VChooseK([1:numel(sC)]);
+        aa = VChooseK([1:numel(sC)]); 
         keyboard;
         
         %        set(uistate.handles.img,'HitTest','on');
