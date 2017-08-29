@@ -153,12 +153,11 @@ if ~isequal(file_name, 0)
     if ~isequal(file_name_end, '.mat') 
         uistate.img = Img( 'url',file_name);       
         uistate.handles.img = imshow(uistate.img.data,'Parent',gca);    
+        uistate.cid_cache = CASS.CidCache(uistate.img.cid);
+        contour_list = uistate.cid_cache.get('dr','contours'); 
+        [E,o] = extract_contours(uistate.img.data);
         keyboard;
-        uistate.cid_cache = CASS.CidCache(img.cid);
-        axis off;
-
-        [E,o] = extract_contours(uistate.img);
-
+        pts = segment_contours(E);
         
         %        set(uistate.handles.img,'HitTest','on');
 %        set(uistate.handles.img,'ButtonDownFcn',@image_click_callback);
