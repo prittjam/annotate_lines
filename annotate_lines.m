@@ -61,6 +61,7 @@ guidata(hObject, handles);
 addpath(genpath('external/edges'));
 addpath(genpath('external/toolbox'));
 addpath(genpath('external/cvdb'));
+addpath(genpath('external/features'));
 
 % UIWAIT makes annotate_lines wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
@@ -150,11 +151,10 @@ uistate = guidata(gcf);
 if ~isequal(file_name, 0)
     [~,uistate.file_name_base,file_name_end] = fileparts(file_name);  
     if ~isequal(file_name_end, '.mat') 
-        uistate.img = imread([path file_name]);
-        uistate.handles.img = imshow(uistate.img,'Parent',gca);    
-        img = Img('data',uistate.img, ...
-                  'url',file_name);       
-        uistate.cid_cache = CASS.CidCache(img_metadata.cid, cache_params{:});
+        uistate.img = Img( 'url',file_name);       
+        uistate.handles.img = imshow(uistate.img.data,'Parent',gca);    
+        keyboard;
+        uistate.cid_cache = CASS.CidCache(img.cid);
         axis off;
 
         [E,o] = extract_contours(uistate.img);
