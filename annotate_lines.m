@@ -57,6 +57,7 @@ handles.output = hObject;
 
 % Update handles structure
 guidata(hObject, handles);
+
 addpath(genpath('external'));
 addpath(genpath('~/opt/mex'));
 addpath(genpath('~/opt/bgl'));
@@ -85,6 +86,13 @@ function previmage_Callback(hObject, eventdata, handles)
 % hObject    handle to previmage (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+uistate = guidata(gcf);
+N = numel(uistate.img_urls);
+uistate.cur_url_id = uistate.cur_url_id-1;
+if mod(uistate.cur_url_id,N) == 0
+    uistate.cur_url_id = 1;
+end
+uistate.img = Img('url',uistate.img_urls{uistate.cur_url_id});       
 
 
 % --- Executes on button press in nextimage.
@@ -92,7 +100,13 @@ function nextimage_Callback(hObject, eventdata, handles)
 % hObject    handle to nextimage (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+uistate = guidata(gcf);
+N = numel(uistate.img_urls);
+uistate.cur_url_id = uistate.cur_url_id+1;
+if mod(uistate.cur_url_id,N) == 0
+    uistate.cur_url_id = 1;
+end
+uistate.img = Img('url',uistate.img_urls{uistate.cur_url_id});       
 
 % --- Executes on button press in badpair.
 function badpair_Callback(hObject, eventdata, handles)
@@ -151,74 +165,31 @@ uistate = guidata(gcf);
 [file_name,path] = uigetfile({'*.png;*.jpg;*.gif;*.JPG','Pictures (*.png,*.jpg,*.gif)';'*.mat', 'Repeats (*.mat)'});
 
 if ~isequal(file_name, 0)
-    [~,uistate.file_name_base,file_name_end] = fileparts(file_name);  
+    [cur_url,uistate.file_name_base,file_name_end] = fileparts(file_name);
+    
     if ~isequal(file_name_end, '.mat') 
         pth = pwd;
-        uistate.img = Img( 'url',file_name);       
+        
+        uistate.img_urls = get_img_urls(path);
+        uistate.cur_url_id = find(ismember([path file_name], uistate.img_urls));
+        uistate.img = Img('url',uistate.img_urls{uistate.cur_url_id}); 
+        keyboard;
+        [contour_list,par_pair,perp_pair] = get_contour_list(uistate.img);
         uistate.handles.img = imshow(uistate.img.data,'Parent',gca);    
-        uistate.cid_cache = CASS.CidCache(uistate.img.cid);
-        model = get_dollar_model();
-        uistate.cid_cache.add_dependency('contours',model.opts);
-        uistate.cid_cache.add_dependency('parallel_lines',[], ...
-                                         'parents','contours'); 
-        uistate.cid_cache.add_dependency('perpendicular_lines',[], ...
-                                         'parents','contours'); 
-        contour_list = uistate.cid_cache.get('dr','contours'); 
-        
-        if isempty(contour_list)
-            [E,o] = edgesDetect(img,model);
-            
-            cd(pth);
-            pts = DL.segment_contours(E);
-            C = cmp_splitapply(@(x) { x },[pts(:).x],[pts(:).G]);
-            sz = cmp_splitapply(@(x)  numel(x) ,[pts(:).x],[pts(:).G]);
-            ind = sz > 20;
-            num_ind = sum(ind);
-            sC = C(ind);
-            l = zeros(3,num_ind);
-            
-            for k = 1:numel(sC)
-                l(:,k) = LINE.fit(sC{k});
-            end
-            
-            c = abs(l(1:2,:)'*l(1:2,:));
-            c(c>1) = 1;
-            theta = acos(c)*180/pi;
-            ltri = itril([size(l,2) size(l,2)],-1);
-            par_ind = theta(ltri) < 5; 
-            inl_ind = ltri(find(par_ind));
-            [ii,jj] = ind2sub([size(l,2) size(l,2)],inl_ind);
-            sind = sort(mean([sz(ii);sz(jj)],1),'descend');
-            par_pair = [ii(sind) jj(sind)]';
-            
-            perp_ind = theta(ltri) > 85; 
-            inl_ind = ltri(find(perp_ind));
-            [ii2,jj2] = ind2sub([size(l,2) size(l,2)],inl_ind);
-            sind = sort(mean([sz(ii2);sz(jj2)],1),'descend');
-            perp_pair = [ii2(sind) jj2(sind)]';
-        
-            uistate.cid_cache.put('dr','contours',C); 
-            uistate.cid_cache.put('annotations','parallel_lines', ...
-                                  par_pair);
-            uistate.cid_cache.put('annotations','perpendicular_lines', ...
-                                  perp_pair);
-            
-            %        itril()
-        
-            %        set(uistate.handles.img,'HitTest','on');
-            %        set(uistate.handles.img,'ButtonDownFcn',@image_click_callback);
-            %        uistate.plane_list = cell(1,0);
-            %        uistate.cur_plane = 0;
-            %        uistate.cur_repeat(1) = 0;
-            %        uistate.number_of_grids = cell(1,0);
-            %        uistate.file_name = file_name;
-            %        uistate.path = path;
-            %        uistate.outlier = struct('h',[],'select',false);
-            %        uistate.ignore = struct('h',[],'select',false);
-            
-            guidata(gcf,uistate); 
-        end
+
+        guidata(gcf,uistate);
     end
 end
 
-guidata(gcf,uistate);
+function img_urls = get_img_urls(base_path)
+img_urls = dir(fullfile(base_path,'*.jpg'));
+
+img_urls = cat(1,img_urls,dir(fullfile(base_path,'*.JPG')));
+img_urls = cat(1,img_urls,dir(fullfile(base_path,'*.png')));
+img_urls = cat(1,img_urls,dir(fullfile(base_path,'*.PNG')));
+img_urls = cat(1,img_urls,dir(fullfile(base_path,'*.gif')));
+img_urls = cat(1,img_urls,dir(fullfile(base_path,'*.GIF')));
+
+img_urls = rmfield(img_urls,{'date','bytes','isdir','datenum'});
+img_urls = arrayfun(@(x)[x.folder '/' x.name], ...
+                    img_urls,'UniformOutput',false);
