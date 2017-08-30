@@ -87,12 +87,18 @@ function previmage_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 uistate = guidata(gcf);
+
 N = numel(uistate.img_urls);
 uistate.cur_url_id = uistate.cur_url_id-1;
 if mod(uistate.cur_url_id,N) == 0
     uistate.cur_url_id = 1;
 end
 uistate.img = Img('url',uistate.img_urls{uistate.cur_url_id});       
+uistate.handles.img = imshow(uistate.img.data,'Parent',gca);    
+[uistate.contour_list,uistate.par_pair,uistate.perp_pair] = ...
+    get_contour_list(uistate.img);    
+
+guidata(gcf,uistate);
 
 
 % --- Executes on button press in nextimage.
@@ -101,12 +107,19 @@ function nextimage_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 uistate = guidata(gcf);
+
 N = numel(uistate.img_urls);
 uistate.cur_url_id = uistate.cur_url_id+1;
 if mod(uistate.cur_url_id,N) == 0
     uistate.cur_url_id = 1;
 end
-uistate.img = Img('url',uistate.img_urls{uistate.cur_url_id});       
+uistate.img = Img('url',uistate.img_urls{uistate.cur_url_id}); 
+uistate.handles.img = imshow(uistate.img.data,'Parent',gca);    
+[uistate.contour_list,uistate.par_pair,uistate.perp_pair] = ...
+    get_contour_list(uistate.img);    
+
+guidata(gcf,uistate);
+
 
 % --- Executes on button press in badpair.
 function badpair_Callback(hObject, eventdata, handles)
@@ -174,7 +187,8 @@ if ~isequal(file_name, 0)
         uistate.cur_url_id = find(ismember([path file_name], uistate.img_urls));
         uistate.img = Img('url',uistate.img_urls{uistate.cur_url_id}); 
         keyboard;
-        [contour_list,par_pair,perp_pair] = get_contour_list(uistate.img);
+        [uistate.contour_list,uistate.par_pair,uistate.perp_pair] = ...
+            get_contour_list(uistate.img);
         uistate.handles.img = imshow(uistate.img.data,'Parent',gca);    
 
         guidata(gcf,uistate);
