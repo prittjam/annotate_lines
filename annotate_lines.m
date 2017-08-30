@@ -91,7 +91,7 @@ uistate = guidata(gcf);
 N = numel(uistate.img_urls);
 uistate.cur_url_id = uistate.cur_url_id-1;
 if mod(uistate.cur_url_id,N) == 0
-    uistate.cur_url_id = 1;
+    uistate.cur_url_id = N;
 end
 uistate.img = Img('url',uistate.img_urls{uistate.cur_url_id});       
 uistate.handles.img = imshow(uistate.img.data,'Parent',gca);    
