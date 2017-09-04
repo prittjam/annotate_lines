@@ -179,18 +179,13 @@ uistate = guidata(gcf);
 
 if ~isequal(file_name, 0)
     [cur_url,uistate.file_name_base,file_name_end] = fileparts(file_name);
-    
     if ~isequal(file_name_end, '.mat') 
-        pth = pwd;
-        
         uistate.img_urls = get_img_urls(path);
         uistate.cur_url_id = find(ismember([path file_name], uistate.img_urls));
         uistate.img = Img('url',uistate.img_urls{uistate.cur_url_id}); 
-        keyboard;
         [uistate.contour_list,uistate.par_pair,uistate.perp_pair] = ...
             get_contour_list(uistate.img);
         uistate.handles.img = imshow(uistate.img.data,'Parent',gca);    
-
         guidata(gcf,uistate);
     end
 end
