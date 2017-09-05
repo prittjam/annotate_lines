@@ -66,6 +66,11 @@ cache_params = { 'read_cache', true, ...
                  'write_cache', true };
 init_dbs(cache_params{:});
 
+uistate = guidata(gcf);
+
+uistate.main_axes = gca;
+guidata(gcf,uistate);
+
 % UIWAIT makes annotate_lines wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
@@ -180,12 +185,12 @@ uistate = guidata(gcf);
 if ~isequal(file_name, 0)
     [cur_url,uistate.file_name_base,file_name_end] = fileparts(file_name);
     if ~isequal(file_name_end, '.mat') 
-        uistate.img_urls = get_img_urls(path);
-        uistate.cur_url_id = find(ismember([path file_name], uistate.img_urls));
+        uistate.img_urls = get_img_urls(path); 
+        [~,uistate.cur_url_id] = ismember([path file_name], uistate.img_urls);
         uistate.img = Img('url',uistate.img_urls{uistate.cur_url_id}); 
-        [uistate.contour_list,uistate.par_pair,uistate.perp_pair] = ...
+        [uistate.contour_list,uistate.par_cspond,uistate.perp_cspond] = ...
             get_contour_list(uistate.img);
-        uistate.handles.img = imshow(uistate.img.data,'Parent',gca);    
+        uistate.handles.img = imshow(uistate.img.data,'Parent',uistate.main_axes);    
         guidata(gcf,uistate);
     end
 end
