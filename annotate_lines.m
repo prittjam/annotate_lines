@@ -251,26 +251,33 @@ img_urls = arrayfun(@(x)[x.folder '/' x.name], ...
 
 function [] = update_lines(uistate)
 uistate = guidata(gcf);
-uistate.linetype = eventdata.Source.Value;
 
 imshow(uistate.img.data,'Parent',uistate.main_axes);    
 switch uistate.linetype
   case 1
     draw_line_pair(uistate.main_axes,uistate.contour_list, ...
-                   uistate.par_cspond,uistate.par_count);
+                   uistate.par_cspond,uistate.par_count, [0 0 0.8]);
   case 2
     draw_line_pair(uistate.main_axes,uistate.contour_list, ...
-                   uistate.perp_cspond,uistate.perp_count);
+                   uistate.perp_cspond,uistate.perp_count,[1 165/255 0]);
 end
 
 guidata(gcf,uistate);
 
-function [] = draw_line_pair(ax,contour_list,cspond,idx)
+function [] = draw_line_pair(ax,contour_list,cspond,idx,color)
+axes ax;
 hold on;
+
+plot(contour_list(cspond(idx).cspond(1)).C(1,:),...
+     contour_list(cspond(idx).cspond(1)).C(2,:),...
+     'Linewidth',3,'Color','w');
 LINE.draw(ax, ...
           contour_list(cspond(idx).cspond(1)).l, ...
-          'LineWidth',3);
+          'LineWidth',3,'Color',color);
+plot(contour_list(cspond(idx).cspond(2)).C(1,:),...
+     contour_list(cspond(idx).cspond(2)).C(2,:),...
+     'Linewidth',3,'Color','w');
 LINE.draw(ax, ...
           contour_list(cspond(idx).cspond(2)).l, ...
-          'LineWidth',3);
+          'LineWidth',3,'Color',color);
 hold off;
