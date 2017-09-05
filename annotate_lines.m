@@ -69,6 +69,8 @@ init_dbs(cache_params{:});
 uistate = guidata(gcf);
 
 uistate.main_axes = gca;
+uistate.par_count = 1;
+uistate.perp_count = 1;
 guidata(gcf,uistate);
 
 % UIWAIT makes annotate_lines wait for user response (see UIRESUME)
@@ -100,7 +102,7 @@ if mod(uistate.cur_url_id,N) == 0
 end
 uistate.img = Img('url',uistate.img_urls{uistate.cur_url_id});       
 uistate.handles.img = imshow(uistate.img.data,'Parent',gca);    
-[uistate.contour_list,uistate.par_pair,uistate.perp_pair] = ...
+[uistate.contour_list,uistate.par_cspond,uistate.perp_cspond] = ...
     get_contour_list(uistate.img);    
 
 guidata(gcf,uistate);
@@ -120,7 +122,7 @@ if mod(uistate.cur_url_id,N) == 0
 end
 uistate.img = Img('url',uistate.img_urls{uistate.cur_url_id}); 
 uistate.handles.img = imshow(uistate.img.data,'Parent',gca);    
-[uistate.contour_list,uistate.par_pair,uistate.perp_pair] = ...
+[uistate.contour_list,uistate.par_cspond,uistate.perp_cspond] = ...
     get_contour_list(uistate.img);    
 
 guidata(gcf,uistate);
@@ -143,7 +145,20 @@ function linetype_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns linetype contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from linetype
+uistate = guidata(gcf);
+uistate.linetype = eventdata.Source.Value;
 
+imshow(uistate.img.data,'Parent',uistate.main_axes);    
+switch uistate.linetype
+  case 1
+    draw_line_pair(uistate.main_axes,uistate.contour_list, ...
+                   uistate.par_cspond,uistate.par_count);
+  case 2
+    draw_line_pair(uistate.main_axes,uistate.contour_list, ...
+                   uistate.perp_cspond,uistate.perp_count);
+end
+
+guidata(gcf,uistate);
 
 % --- Executes during object creation, after setting all properties.
 function linetype_CreateFcn(hObject, eventdata, handles)
@@ -170,6 +185,31 @@ function nextlines_Callback(hObject, eventdata, handles)
 % hObject    handle to nextlines (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+uistate = guidata(gcf);
+
+keyboard;
+imshow(uistate.img.data,'Parent',uistate.main_axes);    
+switch uistate.linetype
+  case 1
+    N = numel(uistate.par_cspond);
+    uistate.par_count = uistate.par_count+1;
+    if mod(uistate.par_count,N) == 0
+        uistate.cur_url_id = 1;
+    end
+    draw_line_pair(uistate.main_axes,uistate.contour_list, ...
+                   uistate.par_cspond,uistate.par_count);
+  case 2
+    N = numel(uistate.perp_cspond);
+    uistate.perp_count = uistate.perp_count+1;
+    if mod(uistate.perp_count,N) == 0
+        uistate.cur_url_id = 1;
+    end
+    draw_line_pair(uistate.main_axes,uistate.contour_list, ...
+                   uistate.perp_cspond,uistate.perp_count);
+end
+
+guidata(gcf,uistate);
+
 
 
 % --------------------------------------------------------------------
@@ -207,3 +247,13 @@ img_urls = cat(1,img_urls,dir(fullfile(base_path,'*.GIF')));
 img_urls = rmfield(img_urls,{'date','bytes','isdir','datenum'});
 img_urls = arrayfun(@(x)[x.folder '/' x.name], ...
                     img_urls,'UniformOutput',false);
+
+function [] = draw_line_pair(ax,contour_list,cspond,idx)
+hold on;
+LINE.draw(ax, ...
+          contour_list(cspond(idx).cspond(1)).l, ...
+          'LineWidth',3);
+LINE.draw(ax, ...
+          contour_list(cspond(idx).cspond(2)).l, ...
+          'LineWidth',3);
+hold off;

@@ -35,12 +35,8 @@ function [contour_list,par_cspond,perp_cspond] = ...
     par_cspond = ...
         cid_cache.get('annotations','parallel_lines');
 
-    perp_cpsond = ...
+    perp_cspond = ...
         cid_cache.get('annotations','perpendicular_lines');
-
-
-    par_cspond = [];
-    perp_cpsond = [];
 
     if isempty(par_cspond)
         l = [contour_list(:).l];
@@ -54,22 +50,21 @@ function [contour_list,par_cspond,perp_cspond] = ...
         [ii,jj] = ind2sub([size(l,2) size(l,2)],par_inl_ind);
         [~,sind] = sort(mean([sz(ii);sz(jj)],1),'descend');
         cspond_par = [ii(sind) jj(sind)]';
-        num_par = size(cspond_par,2);
+        max_num_par = min([100 size(cspond_par,2)]);
         
         perp_ind = theta(ltri) > 85; 
         perp_inl_ind = ltri(find(perp_ind));
         [ii2,jj2] = ind2sub([size(l,2) size(l,2)],perp_inl_ind);
-        [~,sind] = sort(mean([sz(ii2);sz(jj2)],1),'descend');
+         [~,sind] = sort(mean([sz(ii2);sz(jj2)],1),'descend');
         cspond_perp = [ii2(sind) jj2(sind)]';
-        num_perp = size(cspond_perp,2);
+        max_num_perp = min([100 size(cspond_perp,2)]);
         
         par_cspond = ...
-            struct('cspond',mat2cell(cspond_par,2,ones(1,num_par)), ...
-                   'label', mat2cell(zeros(1,num_par),1,ones(1,num_par)));
+            struct('cspond',mat2cell(cspond_par(:,1:max_num_par),2,ones(1,max_num_par)), ...
+                   'label', mat2cell(zeros(1,max_num_par),1,ones(1,max_num_par)));
         perp_cspond = ...
-            struct('cspond',mat2cell(cspond_perp,2,ones(1,num_perp)), ...
-                   'label', mat2cell(zeros(1,num_perp),1,ones(1,num_perp)));          
-
+            struct('cspond',mat2cell(cspond_perp(:,1:max_num_perp),2,ones(1,max_num_perp)), ...
+                   'label', mat2cell(zeros(1,max_num_perp),1,ones(1,max_num_perp)));          
         cid_cache.put('annotations','parallel_lines',par_cspond);
         cid_cache.put('annotations','perpendicular_lines',perp_cspond);
     end
