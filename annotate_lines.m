@@ -104,6 +104,9 @@ uistate.img = Img('url',uistate.img_urls{uistate.cur_url_id});
 uistate.handles.img = imshow(uistate.img.data,'Parent',gca);    
 [uistate.contour_list,uistate.par_cspond,uistate.perp_cspond] = ...
     get_contour_list(uistate.img);    
+uistate.par_count = 1;
+uistate.perp_count = 1;
+update_lines(uistate);
 
 guidata(gcf,uistate);
 
@@ -124,6 +127,9 @@ uistate.img = Img('url',uistate.img_urls{uistate.cur_url_id});
 uistate.handles.img = imshow(uistate.img.data,'Parent',gca);    
 [uistate.contour_list,uistate.par_cspond,uistate.perp_cspond] = ...
     get_contour_list(uistate.img);    
+uistate.par_count = 1;
+uistate.perp_count = 1;
+update_lines(uistate);
 
 guidata(gcf,uistate);
 
@@ -148,15 +154,7 @@ function linetype_Callback(hObject, eventdata, handles)
 uistate = guidata(gcf);
 uistate.linetype = eventdata.Source.Value;
 
-imshow(uistate.img.data,'Parent',uistate.main_axes);    
-switch uistate.linetype
-  case 1
-    draw_line_pair(uistate.main_axes,uistate.contour_list, ...
-                   uistate.par_cspond,uistate.par_count);
-  case 2
-    draw_line_pair(uistate.main_axes,uistate.contour_list, ...
-                   uistate.perp_cspond,uistate.perp_count);
-end
+update_lines(uistate);
 
 guidata(gcf,uistate);
 
@@ -178,6 +176,21 @@ function prevlines_Callback(hObject, eventdata, handles)
 % hObject    handle to prevlines (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+uistate = guidata(gcf);
+
+imshow(uistate.img.data,'Parent',uistate.main_axes);    
+switch uistate.linetype
+  case 1
+    N = numel(uistate.par_cspond);
+    uistate.par_count = uistate.par_count-1;
+  case 2
+    N = numel(uistate.perp_cspond);
+    uistate.perp_count = uistate.perp_count-1;
+end
+
+update_lines(uistate);
+
+guidata(gcf,uistate);
 
 
 % --- Executes on button press in nextlines.
@@ -187,30 +200,18 @@ function nextlines_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 uistate = guidata(gcf);
 
-keyboard;
-imshow(uistate.img.data,'Parent',uistate.main_axes);    
 switch uistate.linetype
   case 1
     N = numel(uistate.par_cspond);
     uistate.par_count = uistate.par_count+1;
-    if mod(uistate.par_count,N) == 0
-        uistate.cur_url_id = 1;
-    end
-    draw_line_pair(uistate.main_axes,uistate.contour_list, ...
-                   uistate.par_cspond,uistate.par_count);
   case 2
     N = numel(uistate.perp_cspond);
     uistate.perp_count = uistate.perp_count+1;
-    if mod(uistate.perp_count,N) == 0
-        uistate.cur_url_id = 1;
-    end
-    draw_line_pair(uistate.main_axes,uistate.contour_list, ...
-                   uistate.perp_cspond,uistate.perp_count);
 end
 
+update_lines(uistate);
+
 guidata(gcf,uistate);
-
-
 
 % --------------------------------------------------------------------
 function openfile_ClickedCallback(hObject, eventdata, handles)
@@ -247,6 +248,22 @@ img_urls = cat(1,img_urls,dir(fullfile(base_path,'*.GIF')));
 img_urls = rmfield(img_urls,{'date','bytes','isdir','datenum'});
 img_urls = arrayfun(@(x)[x.folder '/' x.name], ...
                     img_urls,'UniformOutput',false);
+
+function [] = update_lines(uistate)
+uistate = guidata(gcf);
+uistate.linetype = eventdata.Source.Value;
+
+imshow(uistate.img.data,'Parent',uistate.main_axes);    
+switch uistate.linetype
+  case 1
+    draw_line_pair(uistate.main_axes,uistate.contour_list, ...
+                   uistate.par_cspond,uistate.par_count);
+  case 2
+    draw_line_pair(uistate.main_axes,uistate.contour_list, ...
+                   uistate.perp_cspond,uistate.perp_count);
+end
+
+guidata(gcf,uistate);
 
 function [] = draw_line_pair(ax,contour_list,cspond,idx)
 hold on;
