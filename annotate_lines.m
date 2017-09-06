@@ -117,14 +117,12 @@ function nextimage_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 uistate = guidata(gcf);
 
-keyboard;
-
 N = numel(uistate.img_urls);
 uistate.cur_url_id = uistate.cur_url_id+1;
 if mod(uistate.cur_url_id,N) == 0
     uistate.cur_url_id = 1;
 end
-uistate.img = Img('url',uistate.img_urls{uistate.cur_url_id}); 
+uistate.img = Img('url',uistate.img_urls{uistate.cur_url_id});  
 uistate.handles.img = imshow(uistate.img.data,'Parent',gca);    
 [uistate.contour_list,uistate.par_cspond,uistate.perp_cspond] = ...
     get_contour_list(uistate.img);    
@@ -154,7 +152,7 @@ function linetype_Callback(hObject, eventdata, handles)
 % Hints: contents = cellstr(get(hObject,'String')) returns linetype contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from linetype
 uistate = guidata(gcf);
-uistate.linetype = eventdata.Source.Value;
+%uistate.linetype = eventdata.Source.Value;
 
 update_lines(uistate);
 
@@ -233,7 +231,8 @@ if ~isequal(file_name, 0)
         uistate.img = Img('url',uistate.img_urls{uistate.cur_url_id}); 
         [uistate.contour_list,uistate.par_cspond,uistate.perp_cspond] = ...
             get_contour_list(uistate.img);
-        uistate.handles.img = imshow(uistate.img.data,'Parent',uistate.main_axes);    
+        keyboard;
+        update_lines(uistate);
         guidata(gcf,uistate);
     end
 end
@@ -252,8 +251,6 @@ img_urls = arrayfun(@(x)[x.folder '/' x.name], ...
                     img_urls,'UniformOutput',false);
 
 function [] = update_lines(uistate)
-uistate = guidata(gcf);
-
 imshow(uistate.img.data,'Parent',uistate.main_axes);    
 switch uistate.linetype
   case 1
@@ -264,11 +261,8 @@ switch uistate.linetype
                    uistate.perp_cspond,uistate.perp_count,[1 165/255 0]);
 end
 
-guidata(gcf,uistate);
-
 function [] = draw_line_pair(ax,contour_list,cspond,idx,color)
 hold on;
-keyboard;
 plot(contour_list(cspond(idx).cspond(1)).C(1,:),...
      contour_list(cspond(idx).cspond(1)).C(2,:),...
      'Linewidth',3,'Color','w');
