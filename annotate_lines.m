@@ -110,13 +110,14 @@ update_lines(uistate);
 
 guidata(gcf,uistate);
 
-
 % --- Executes on button press in nextimage.
 function nextimage_Callback(hObject, eventdata, handles)
 % hObject    handle to nextimage (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 uistate = guidata(gcf);
+
+keyboard;
 
 N = numel(uistate.img_urls);
 uistate.cur_url_id = uistate.cur_url_id+1;
@@ -129,6 +130,7 @@ uistate.handles.img = imshow(uistate.img.data,'Parent',gca);
     get_contour_list(uistate.img);    
 uistate.par_count = 1;
 uistate.perp_count = 1;
+
 update_lines(uistate);
 
 guidata(gcf,uistate);
@@ -255,29 +257,26 @@ uistate = guidata(gcf);
 imshow(uistate.img.data,'Parent',uistate.main_axes);    
 switch uistate.linetype
   case 1
-    draw_line_pair(uistate.main_axes,uistate.contour_list, ...
+    draw_line_pair(gca,uistate.contour_list, ...
                    uistate.par_cspond,uistate.par_count, [0 0 0.8]);
   case 2
-    draw_line_pair(uistate.main_axes,uistate.contour_list, ...
+    draw_line_pair(gca,uistate.contour_list, ...
                    uistate.perp_cspond,uistate.perp_count,[1 165/255 0]);
 end
 
 guidata(gcf,uistate);
 
 function [] = draw_line_pair(ax,contour_list,cspond,idx,color)
-axes ax;
 hold on;
-
+keyboard;
 plot(contour_list(cspond(idx).cspond(1)).C(1,:),...
      contour_list(cspond(idx).cspond(1)).C(2,:),...
      'Linewidth',3,'Color','w');
-LINE.draw(ax, ...
-          contour_list(cspond(idx).cspond(1)).l, ...
+LINE.draw(ax, contour_list(cspond(idx).cspond(1)).l, ...
           'LineWidth',3,'Color',color);
 plot(contour_list(cspond(idx).cspond(2)).C(1,:),...
      contour_list(cspond(idx).cspond(2)).C(2,:),...
      'Linewidth',3,'Color','w');
-LINE.draw(ax, ...
-          contour_list(cspond(idx).cspond(2)).l, ...
+LINE.draw(ax, contour_list(cspond(idx).cspond(2)).l, ...
           'LineWidth',3,'Color',color);
 hold off;
