@@ -179,7 +179,7 @@ function prevlines_Callback(hObject, eventdata, handles)
 uistate = guidata(gcf);
 
 imshow(uistate.img.data,'Parent',uistate.main_axes);    
-switch uistate.linetype
+switch uistate.linetype.Value
   case 1
     N = numel(uistate.par_cspond);
     uistate.par_count = uistate.par_count-1;
@@ -199,8 +199,7 @@ function nextlines_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 uistate = guidata(gcf);
-
-switch uistate.linetype
+switch uistate.linetype.Value
   case 1
     N = numel(uistate.par_cspond);
     uistate.par_count = uistate.par_count+1;
@@ -251,7 +250,7 @@ img_urls = arrayfun(@(x)[x.folder '/' x.name], ...
 
 function [] = update_lines(uistate)
 imshow(uistate.img.data,'Parent',uistate.main_axes);    
-switch uistate.linetype
+switch uistate.linetype.Value
   case 1
     draw_line_pair(gca,uistate.contour_list, ...
                    uistate.par_cspond,uistate.par_count, [0 0 0.8]);
@@ -262,14 +261,14 @@ end
 
 function [] = draw_line_pair(ax,contour_list,cspond,idx,color)
 hold on;
-plot(contour_list(cspond(idx).cspond(1)).C(1,:),...
-     contour_list(cspond(idx).cspond(1)).C(2,:),...
-     'Linewidth',3,'Color','w');
+%plot(contour_list(cspond(idx).cspond(1)).C(1,:),...
+%     contour_list(cspond(idx).cspond(1)).C(2,:),...
+%     'Linewidth',3,'Color','w');
 LINE.draw(ax, contour_list(cspond(idx).cspond(1)).l, ...
           'LineWidth',3,'Color',color);
-plot(contour_list(cspond(idx).cspond(2)).C(1,:),...
-     contour_list(cspond(idx).cspond(2)).C(2,:),...
-     'Linewidth',3,'Color','w');
+%plot(contour_list(cspond(idx).cspond(2)).C(1,:),...
+%     contour_list(cspond(idx).cspond(2)).C(2,:),...
+%     'Linewidth',3,'Color','w');
 LINE.draw(ax, contour_list(cspond(idx).cspond(2)).l, ...
           'LineWidth',3,'Color',color);
 hold off;
