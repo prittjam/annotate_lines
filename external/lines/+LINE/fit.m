@@ -3,9 +3,9 @@ function l = fit(x)
 %L = cv.fitLine(Xu);
 %l = ...
 %    LINE.inhomogenize(LINE.make_orthogonal(L(1:2),L(3:4)));
-
-mux = mean(x(1:2,:));
+mux = mean(x(1:2,:),2);
 xx = x(1:2,:)-mux;
 [~,~,V] = svd(xx*xx');
-l = V(:,end);
-LINE.inhomogenize(LINE.make_orthogonal(l,mux));
+l0 = V(:,end);
+l3 = dot(-l0,mux);
+l = LINE.inhomogenize([l0;l3]);
