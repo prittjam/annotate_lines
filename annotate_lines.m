@@ -69,6 +69,7 @@ init_dbs(cache_params{:});
 uistate = guidata(gcf);
 
 uistate.main_axes = gca;
+
 uistate.par_count = 1;
 uistate.perp_count = 1;
 guidata(gcf,uistate);
@@ -104,8 +105,10 @@ uistate.img = Img('url',uistate.img_urls{uistate.cur_url_id});
 uistate.handles.img = imshow(uistate.img.data,'Parent',gca);    
 [uistate.contour_list,uistate.par_cspond,uistate.perp_cspond, uistate.cid_cache, uistate.bounding_boxes] = ...
     get_contour_list(uistate.img);    
-uistate.par_count = 1;
-uistate.perp_count = 1;
+[start_par_count, start_perp_count] = find_unlabeled_lines(uistate);
+
+uistate.par_count = start_par_count; % = 1
+uistate.perp_count = start_perp_count; % = 1 
 reset_radiobuttons(uistate); % my changes
 
 update_lines(uistate);
@@ -129,24 +132,16 @@ uistate.img = Img('url',uistate.img_urls{uistate.cur_url_id});
 uistate.handles.img = imshow(uistate.img.data,'Parent',gca);    
 [uistate.contour_list,uistate.par_cspond,uistate.perp_cspond, uistate.cid_cache, uistate.bounding_boxes] = ...
     get_contour_list(uistate.img);    
-uistate.par_count = 1;
-uistate.perp_count = 1;
+[start_par_count, start_perp_count] = find_unlabeled_lines(uistate);
+
+uistate.par_count = start_par_count; % = 1
+uistate.perp_count = start_perp_count; % = 1
 
 reset_radiobuttons(uistate); % my changes
 
 update_lines(uistate);
 
 guidata(gcf,uistate);
-
-
-% --- Executes on button press in badpair.
-function badpair_Callback(hObject, eventdata, handles)
-% hObject    handle to badpair (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hint: get(hObject,'Value') returns toggle state of badpair
-
 
 % --- Executes on selection change in linetype.
 function linetype_Callback(hObject, eventdata, handles)
@@ -184,14 +179,13 @@ function prevlines_Callback(hObject, eventdata, handles)
 uistate = guidata(gcf);
 
 imshow(uistate.img.data,'Parent',uistate.main_axes);   
-
 switch uistate.linetype.Value
   case 1
     N = numel(uistate.par_cspond);
     uistate.par_count = uistate.par_count-1;
     %%% my changes %%%
     if uistate.par_count < 1
-        uistate.par_count = 1;
+        uistate.par_count = N;
     end    
     %%% end %%%
   case 2
@@ -199,7 +193,7 @@ switch uistate.linetype.Value
     uistate.perp_count = uistate.perp_count-1;
     %%% my changes %%%
     if uistate.perp_count < 1
-        uistate.perp_count = 1;
+        uistate.perp_count = N;
     end    
     %%% end %%%
 end
@@ -222,20 +216,13 @@ uistate = guidata(gcf);
 switch uistate.linetype.Value
   case 1
     N = numel(uistate.par_cspond);
-    uistate.par_count = uistate.par_count+1;
-    %%% my changes %%%
-    if uistate.par_count > numel(uistate.par_cspond)
-        uistate.par_count = numel(uistate.par_cspond);
-    end    
-    %%% end %%%
+%     uistate.par_count = uistate.par_count+1;
+     uistate.par_count = mod(uistate.par_count, N) + 1;   
   case 2
     N = numel(uistate.perp_cspond);
-    uistate.perp_count = uistate.perp_count+1;
-    %%% my changes %%%
-    if uistate.perp_count > numel(uistate.perp_cspond)
-        uistate.perp_count = numel(uistate.perp_cspond);
-    end  
-    %%% end %%%
+%     uistate.perp_count = uistate.perp_count+1;
+     uistate.perp_count = mod(uistate.perp_count, N) + 1;
+
 end
 
 uistate = next_reset_radiobuttons(uistate); % my changes
@@ -264,6 +251,10 @@ if ~isequal(file_name, 0)
         [uistate.contour_list,uistate.par_cspond,uistate.perp_cspond, uistate.cid_cache, uistate.bounding_boxes] = ...
             get_contour_list(uistate.img);
                 
+        [start_par_count, start_perp_count] = find_unlabeled_lines(uistate);
+        uistate.par_count = start_par_count;
+        uistate.perp_count = start_perp_count;
+        
         update_lines(uistate);
 
         guidata(gcf,uistate); 
@@ -288,6 +279,12 @@ img_urls = arrayfun(@(x)[x.folder '/' x.name], ...
 function [] = update_lines(uistate)
 imshow(uistate.img.data,'Parent',uistate.main_axes);   
 draw_annotation(uistate);
+
+disp('Number of paralel line');
+disp(uistate.par_count);
+disp('Number of perpendicular line');
+disp(uistate.perp_count);
+
 switch uistate.linetype.Value
   case 1
     draw_line_pair(gca,uistate.contour_list, ...
@@ -325,8 +322,6 @@ function uistate = next_reset_radiobuttons(uistate)
  if uistate.linetype.Value == 1
      uistate.par_cspond(uistate.par_count - 1).label = result;
  elseif uistate.linetype.Value == 2
-     disp('result');
-     disp(result);
      uistate.perp_cspond(uistate.perp_count - 1).label = result;
  end    
  
@@ -384,3 +379,16 @@ for j = 1:numel(uistate.bounding_boxes)
 end  
 hold off                   
        
+function [start_par_count, start_perp_count] = find_unlabeled_lines(uistate)
+for i = 1:numel(uistate.par_cspond)
+    if uistate.par_cspond(i).label == 0
+       start_par_count = i;
+       break;
+    end
+end
+for i = 1:numel(uistate.perp_cspond)
+    if uistate.perp_cspond(i).label == 0
+       start_perp_count = i;
+       break;
+    end
+end
