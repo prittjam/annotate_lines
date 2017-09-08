@@ -101,6 +101,7 @@ uistate.cur_url_id = uistate.cur_url_id-1;
 if mod(uistate.cur_url_id,N) == 0 || uistate.cur_url_id < 1 % or was added
     uistate.cur_url_id = N;
 end
+
 uistate.img = Img('url',uistate.img_urls{uistate.cur_url_id});       
 uistate.handles.img = imshow(uistate.img.data,'Parent',gca);    
 [uistate.contour_list,uistate.par_cspond,uistate.perp_cspond, uistate.cid_cache, uistate.bounding_boxes] = ...
@@ -123,10 +124,12 @@ function nextimage_Callback(hObject, eventdata, handles)
 uistate = guidata(gcf);
 
 N = numel(uistate.img_urls);
-uistate.cur_url_id = uistate.cur_url_id+1;
-if mod(uistate.cur_url_id,N) == 0 || uistate.cur_url_id > N % or was added
-    uistate.cur_url_id = 1;
-end
+% uistate.cur_url_id = uistate.cur_url_id+1;
+% if mod(uistate.cur_url_id,N) == 0 || uistate.cur_url_id > N % or was added
+%     uistate.cur_url_id = 1;
+% end
+
+uistate.cur_url_id = mod(uistate.cur_url_id, N)+1; % maksym added
 
 uistate.img = Img('url',uistate.img_urls{uistate.cur_url_id});  
 uistate.handles.img = imshow(uistate.img.data,'Parent',gca);    
@@ -213,6 +216,8 @@ function nextlines_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 uistate = guidata(gcf);
 
+uistate = save_cspond_label(uistate); % my changes
+
 switch uistate.linetype.Value
   case 1
     N = numel(uistate.par_cspond);
@@ -222,10 +227,8 @@ switch uistate.linetype.Value
     N = numel(uistate.perp_cspond);
 %     uistate.perp_count = uistate.perp_count+1;
      uistate.perp_count = mod(uistate.perp_count, N) + 1;
-
 end
 
-uistate = next_reset_radiobuttons(uistate); % my changes
 reset_radiobuttons(uistate);
 
 update_lines(uistate);
@@ -254,7 +257,7 @@ if ~isequal(file_name, 0)
         [start_par_count, start_perp_count] = find_unlabeled_lines(uistate);
         uistate.par_count = start_par_count;
         uistate.perp_count = start_perp_count;
-        
+                
         update_lines(uistate);
 
         guidata(gcf,uistate); 
@@ -278,7 +281,7 @@ img_urls = arrayfun(@(x)[x.folder '/' x.name], ...
 
 function [] = update_lines(uistate)
 imshow(uistate.img.data,'Parent',uistate.main_axes);   
-draw_annotation(uistate);
+draw_annotation_and_C_lines(uistate);
 
 disp('Number of paralel line');
 disp(uistate.par_count);
@@ -287,30 +290,54 @@ disp(uistate.perp_count);
 
 switch uistate.linetype.Value
   case 1
-    draw_line_pair(gca,uistate.contour_list, ...
+    lh = draw_line_pair(gca,uistate.contour_list, ...
                    uistate.par_cspond,uistate.par_count, [0 0 0.8]);
+    
+    % maksym added
+    % if lines aren't in polygone draw them black 
+    keep_lines = polygon_area(uistate, lh);
+    if keep_lines == 0
+       draw_line_pair(gca,uistate.contour_list, ...
+                   uistate.par_cspond,uistate.par_count, [0 0 0]);
+    end 
   case 2
-    draw_line_pair(gca,uistate.contour_list, ...
+    lh = draw_line_pair(gca,uistate.contour_list, ...
                    uistate.perp_cspond,uistate.perp_count,[1 165/255 0]);
-end    
+               
+    % maksym added
+    % if lines aren't in polygone draw them black 
+    keep_lines = polygon_area(uistate, lh);
+    if keep_lines == 0
+        draw_line_pair(gca,uistate.contour_list, ...
+                   uistate.perp_cspond,uistate.perp_count,[0 0 0]);
+    end           
+end
 
 
-function [] = draw_line_pair(ax,contour_list,cspond,idx,color)
+function [lh] = draw_line_pair(ax,contour_list,cspond,idx,color)
 hold on;
 %plot(contour_list(cspond(idx).cspond(1)).C(1,:),...
 %     contour_list(cspond(idx).cspond(1)).C(2,:),...
 %     'Linewidth',3,'Color','w');
-LINE.draw(ax, contour_list(cspond(idx).cspond(1)).l, ...
-          'LineWidth',3,'Color',color);
+
+lh(1) = LINE.draw(ax, contour_list(cspond(idx).cspond(1)).l, ...
+          'LineWidth',3,'Color',color);       
+
 %plot(contour_list(cspond(idx).cspond(2)).C(1,:),...
 %     contour_list(cspond(idx).cspond(2)).C(2,:),...
 %     'Linewidth',3,'Color','w');
-LINE.draw(ax, contour_list(cspond(idx).cspond(2)).l, ...
+lh(2) = LINE.draw(ax, contour_list(cspond(idx).cspond(2)).l, ...
           'LineWidth',3,'Color',color);
 hold off;
 
 
-function uistate = next_reset_radiobuttons(uistate)
+function uistate = save_cspond_label(uistate)
+disp('save cspond label');
+disp('Number of paralel line');
+disp(uistate.par_count);
+disp('Number of perpendicular line');
+disp(uistate.perp_count);
+
  if uistate.radiobutton_good.Value == 1
      result = 1;
  elseif uistate.radiobutton_bad.Value == 1
@@ -320,9 +347,9 @@ function uistate = next_reset_radiobuttons(uistate)
  end
  
  if uistate.linetype.Value == 1
-     uistate.par_cspond(uistate.par_count - 1).label = result;
+     uistate.par_cspond(uistate.par_count).label = result; 
  elseif uistate.linetype.Value == 2
-     uistate.perp_cspond(uistate.perp_count - 1).label = result;
+     uistate.perp_cspond(uistate.perp_count).label = result;
  end    
  
  uistate.cid_cache.put('annotations','parallel_lines', uistate.par_cspond);
@@ -363,7 +390,7 @@ else
     end      
 end  
 
-function draw_annotation(uistate)
+function draw_annotation_and_C_lines(uistate)
 imshow(uistate.img.data,'Parent',uistate.main_axes); 
 
 if isempty(uistate.bounding_boxes)
@@ -377,8 +404,13 @@ for j = 1:numel(uistate.bounding_boxes)
     rectangle('Position',[uistate.bounding_boxes(j).rect(1) uistate.bounding_boxes(j).rect(2) width height],...
             'LineWidth', 3, 'EdgeColor' ,[1 0 0])
 end  
+
+for j = 1:numel(uistate.contour_list)
+    plot(uistate.contour_list(j).C(1,:), uistate.contour_list(j).C(2,:), 'LineWidth', 2, 'Color', [0 1 0]);
+end
+  
 hold off                   
-       
+   
 function [start_par_count, start_perp_count] = find_unlabeled_lines(uistate)
 for i = 1:numel(uistate.par_cspond)
     if uistate.par_cspond(i).label == 0
@@ -392,3 +424,41 @@ for i = 1:numel(uistate.perp_cspond)
        break;
     end
 end
+
+function keep_lines = polygon_area(uistate, lh)
+% figure;
+% hold on;
+for i = 1:numel(uistate.bounding_boxes)
+    xlimit = [uistate.bounding_boxes(i).rect(1,1) uistate.bounding_boxes(i).rect(1,2)];
+    ylimit = [uistate.bounding_boxes(i).rect(2,1) uistate.bounding_boxes(i).rect(2,2)];
+    xbox = xlimit([1 1 2 2 1]);
+    ybox = ylimit([1 2 2 1 1]);
+    
+    Lx1 = linspace(lh(1).XData(1), lh(1).XData(2));
+    Ly1 = linspace(lh(1).YData(1), lh(1).YData(2));
+    line1(i).in = inpolygon(Lx1, Ly1, xbox, ybox);
+    
+    Lx2 = linspace(lh(2).XData(1), lh(2).XData(2));
+    Ly2 = linspace(lh(2).YData(1), lh(2).YData(2));
+    line2(i).in = inpolygon(Lx2, Ly2, xbox, ybox);
+
+%     plot(xbox,ybox, 'LineWidth', 5, 'Color', [1 0 0]) % polygon
+%     axis equal
+    
+%     plot(Lx1(line1(i).in), Ly1(line1(i).in),'r+', 'Color', [0 0 0.8]) % points inside
+%     plot(Lx1(~line1(i).in),Ly1(~line1(i).in),'bo', 'Color', [0 0 0.8]) % points outside    
+    
+%     plot(Lx2(line2(i).in), Ly2(line2(i).in),'r+', 'Color', [0 1 0]) % points inside
+%     plot(Lx2(~line2(i).in),Ly2(~line2(i).in),'bo', 'Color', [0 1 0]) % points outside
+
+    matches_in_first_line = sum(line1(i).in(:) == 1);
+    matches_in_second_line = sum(line2(i).in(:) == 1);
+    if matches_in_first_line/numel(Lx1) < 0.5 || matches_in_second_line/numel(Lx1) < 0.5
+        keep(i) = 0;
+    else 
+        keep(i) = 1;
+    end    
+end    
+keep_lines = sum(keep(:) == 1);
+% hold off;
+
