@@ -1,4 +1,4 @@
-function [contour_list,par_cspond,perp_cspond, cid_cache] = ...
+function [contour_list,par_cspond,perp_cspond, cid_cache, bounding_boxes] = ...
         get_contour_list(img)
     cid_cache = CASS.CidCache(img.cid);
     pth = pwd;
@@ -11,9 +11,13 @@ function [contour_list,par_cspond,perp_cspond, cid_cache] = ...
                              'parents','contours'); 
     cid_cache.add_dependency('perpendicular_lines',[], ...
                              'parents','contours'); 
+                         
+    cid_cache.add_dependency('bounding_boxes', []);   % maksym added                  
 
     contour_list = cid_cache.get('annotations','contour_list'); 
 
+    bounding_boxes = cid_cache.get('annotations', 'bounding_boxes');  %maksym added
+    
     if isempty(contour_list)
         [E,o] = edgesDetect(img.data,model);
         cd(pth);

@@ -102,7 +102,7 @@ if mod(uistate.cur_url_id,N) == 0 || uistate.cur_url_id < 1 % or was added
 end
 uistate.img = Img('url',uistate.img_urls{uistate.cur_url_id});       
 uistate.handles.img = imshow(uistate.img.data,'Parent',gca);    
-[uistate.contour_list,uistate.par_cspond,uistate.perp_cspond, uistate.cid_cache] = ...
+[uistate.contour_list,uistate.par_cspond,uistate.perp_cspond, uistate.cid_cache, uistate.bounding_boxes] = ...
     get_contour_list(uistate.img);    
 uistate.par_count = 1;
 uistate.perp_count = 1;
@@ -127,7 +127,7 @@ end
 
 uistate.img = Img('url',uistate.img_urls{uistate.cur_url_id});  
 uistate.handles.img = imshow(uistate.img.data,'Parent',gca);    
-[uistate.contour_list,uistate.par_cspond,uistate.perp_cspond, uistate.cid_cache] = ...
+[uistate.contour_list,uistate.par_cspond,uistate.perp_cspond, uistate.cid_cache, uistate.bounding_boxes] = ...
     get_contour_list(uistate.img);    
 uistate.par_count = 1;
 uistate.perp_count = 1;
@@ -218,7 +218,7 @@ function nextlines_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 uistate = guidata(gcf);
-disp('nextlines_Callback');
+
 switch uistate.linetype.Value
   case 1
     N = numel(uistate.par_cspond);
@@ -243,7 +243,7 @@ reset_radiobuttons(uistate);
 
 update_lines(uistate);
 
-guidata(gcf,uistate);  
+guidata(gcf,uistate); 
 
 % --------------------------------------------------------------------
 function openfile_ClickedCallback(hObject, eventdata, handles)
@@ -261,13 +261,13 @@ if ~isequal(file_name, 0)
         uistate.img_urls = get_img_urls(path); 
         [~,uistate.cur_url_id] = ismember([path file_name], uistate.img_urls);
         uistate.img = Img('url',uistate.img_urls{uistate.cur_url_id}); 
-        [uistate.contour_list,uistate.par_cspond,uistate.perp_cspond, uistate.cid_cache] = ...
+        [uistate.contour_list,uistate.par_cspond,uistate.perp_cspond, uistate.cid_cache, uistate.bounding_boxes] = ...
             get_contour_list(uistate.img);
                 
         update_lines(uistate);
 
         guidata(gcf,uistate); 
-        
+
         reset_radiobuttons(uistate); % my changes
     end
 end
@@ -369,24 +369,18 @@ else
 end  
 
 function draw_annotation(uistate)
-cid_cache = CASS.CidCache(uistate.img.cid);
-cid_cache.add_dependency('aiger:annotated', '-q 32 32');
-cid_cache.add_dependency('aiger:multiplane', '-q 32 32');
-aiger_ann = cid_cache.get('results', 'aiger:annotated');
-aiger_m = cid_cache.get('results', 'aiger:multiplane');
+imshow(uistate.img.data,'Parent',uistate.main_axes); 
 
-imshow(uistate.img.data,'Parent',uistate.main_axes);  
-hold on
-if ~isempty(aiger_m) 
-    for j = 1:numel(aiger_m)
-        width = aiger_m(j).rect(1,2) - aiger_m(j).rect(1,1);
-        height = aiger_m(j).rect(2,2) - aiger_m(j).rect(2,1);        
-        rectangle('Position',[aiger_m(j).rect(1) aiger_m(j).rect(2) width height], 'LineWidth', 3, 'EdgeColor' ,[1 0 0])
-    end
-else
-    width = aiger_ann.rect(1,2) - aiger_ann.rect(1,1);
-    height = aiger_ann.rect(2,2) - aiger_ann.rect(2,1);    
-    rectangle('Position',[aiger_ann.rect(1) aiger_ann.rect(2) width height], 'LineWidth', 3, 'EdgeColor' ,[1 0 0])   
+if isempty(uistate.bounding_boxes)
+    return
 end    
+hold on
+
+for j = 1:numel(uistate.bounding_boxes)
+    width = uistate.bounding_boxes(j).rect(1,2) - uistate.bounding_boxes(j).rect(1,1);
+    height = uistate.bounding_boxes(j).rect(2,2) - uistate.bounding_boxes(j).rect(2,1);        
+    rectangle('Position',[uistate.bounding_boxes(j).rect(1) uistate.bounding_boxes(j).rect(2) width height],...
+            'LineWidth', 3, 'EdgeColor' ,[1 0 0])
+end  
 hold off                   
        
