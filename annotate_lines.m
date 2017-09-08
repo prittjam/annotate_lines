@@ -22,7 +22,7 @@ function varargout = annotate_lines(varargin)
 
 % Edit the above text to modify the response to help annotate_lines
 
-% Last Modified by GUIDE v2.5 29-Aug-2017 10:36:16
+% Last Modified by GUIDE v2.5 06-Sep-2017 16:12:48
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -97,15 +97,17 @@ uistate = guidata(gcf);
 
 N = numel(uistate.img_urls);
 uistate.cur_url_id = uistate.cur_url_id-1;
-if mod(uistate.cur_url_id,N) == 0
+if mod(uistate.cur_url_id,N) == 0 || uistate.cur_url_id < 1 % or was added
     uistate.cur_url_id = N;
 end
 uistate.img = Img('url',uistate.img_urls{uistate.cur_url_id});       
 uistate.handles.img = imshow(uistate.img.data,'Parent',gca);    
-[uistate.contour_list,uistate.par_cspond,uistate.perp_cspond] = ...
+[uistate.contour_list,uistate.par_cspond,uistate.perp_cspond, uistate.cid_cache] = ...
     get_contour_list(uistate.img);    
 uistate.par_count = 1;
 uistate.perp_count = 1;
+reset_radiobuttons(uistate); % my changes
+
 update_lines(uistate);
 
 guidata(gcf,uistate);
@@ -119,15 +121,18 @@ uistate = guidata(gcf);
 
 N = numel(uistate.img_urls);
 uistate.cur_url_id = uistate.cur_url_id+1;
-if mod(uistate.cur_url_id,N) == 0
+if mod(uistate.cur_url_id,N) == 0 || uistate.cur_url_id > N % or was added
     uistate.cur_url_id = 1;
 end
+
 uistate.img = Img('url',uistate.img_urls{uistate.cur_url_id});  
 uistate.handles.img = imshow(uistate.img.data,'Parent',gca);    
-[uistate.contour_list,uistate.par_cspond,uistate.perp_cspond] = ...
+[uistate.contour_list,uistate.par_cspond,uistate.perp_cspond, uistate.cid_cache] = ...
     get_contour_list(uistate.img);    
 uistate.par_count = 1;
 uistate.perp_count = 1;
+
+reset_radiobuttons(uistate); % my changes
 
 update_lines(uistate);
 
@@ -178,19 +183,33 @@ function prevlines_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 uistate = guidata(gcf);
 
-imshow(uistate.img.data,'Parent',uistate.main_axes);    
+imshow(uistate.img.data,'Parent',uistate.main_axes);   
+
 switch uistate.linetype.Value
   case 1
     N = numel(uistate.par_cspond);
     uistate.par_count = uistate.par_count-1;
+    %%% my changes %%%
+    if uistate.par_count < 1
+        uistate.par_count = 1;
+    end    
+    %%% end %%%
   case 2
     N = numel(uistate.perp_cspond);
     uistate.perp_count = uistate.perp_count-1;
+    %%% my changes %%%
+    if uistate.perp_count < 1
+        uistate.perp_count = 1;
+    end    
+    %%% end %%%
 end
+reset_radiobuttons(uistate); % my changes
 
 update_lines(uistate);
 
 guidata(gcf,uistate);
+
+
 
 
 % --- Executes on button press in nextlines.
@@ -199,18 +218,32 @@ function nextlines_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 uistate = guidata(gcf);
+disp('nextlines_Callback');
 switch uistate.linetype.Value
   case 1
     N = numel(uistate.par_cspond);
     uistate.par_count = uistate.par_count+1;
+    %%% my changes %%%
+    if uistate.par_count > numel(uistate.par_cspond)
+        uistate.par_count = numel(uistate.par_cspond);
+    end    
+    %%% end %%%
   case 2
     N = numel(uistate.perp_cspond);
     uistate.perp_count = uistate.perp_count+1;
+    %%% my changes %%%
+    if uistate.perp_count > numel(uistate.perp_cspond)
+        uistate.perp_count = numel(uistate.perp_cspond);
+    end  
+    %%% end %%%
 end
+
+uistate = next_reset_radiobuttons(uistate); % my changes
+reset_radiobuttons(uistate);
 
 update_lines(uistate);
 
-guidata(gcf,uistate);
+guidata(gcf,uistate);  
 
 % --------------------------------------------------------------------
 function openfile_ClickedCallback(hObject, eventdata, handles)
@@ -228,10 +261,14 @@ if ~isequal(file_name, 0)
         uistate.img_urls = get_img_urls(path); 
         [~,uistate.cur_url_id] = ismember([path file_name], uistate.img_urls);
         uistate.img = Img('url',uistate.img_urls{uistate.cur_url_id}); 
-        [uistate.contour_list,uistate.par_cspond,uistate.perp_cspond] = ...
+        [uistate.contour_list,uistate.par_cspond,uistate.perp_cspond, uistate.cid_cache] = ...
             get_contour_list(uistate.img);
+                
         update_lines(uistate);
-        guidata(gcf,uistate);
+
+        guidata(gcf,uistate); 
+        
+        reset_radiobuttons(uistate); % my changes
     end
 end
 
@@ -249,7 +286,8 @@ img_urls = arrayfun(@(x)[x.folder '/' x.name], ...
                     img_urls,'UniformOutput',false);
 
 function [] = update_lines(uistate)
-imshow(uistate.img.data,'Parent',uistate.main_axes);    
+imshow(uistate.img.data,'Parent',uistate.main_axes);   
+draw_annotation(uistate);
 switch uistate.linetype.Value
   case 1
     draw_line_pair(gca,uistate.contour_list, ...
@@ -257,7 +295,8 @@ switch uistate.linetype.Value
   case 2
     draw_line_pair(gca,uistate.contour_list, ...
                    uistate.perp_cspond,uistate.perp_count,[1 165/255 0]);
-end
+end    
+
 
 function [] = draw_line_pair(ax,contour_list,cspond,idx,color)
 hold on;
@@ -272,3 +311,82 @@ LINE.draw(ax, contour_list(cspond(idx).cspond(1)).l, ...
 LINE.draw(ax, contour_list(cspond(idx).cspond(2)).l, ...
           'LineWidth',3,'Color',color);
 hold off;
+
+
+function uistate = next_reset_radiobuttons(uistate)
+ if uistate.radiobutton_good.Value == 1
+     result = 1;
+ elseif uistate.radiobutton_bad.Value == 1
+     result = 2;
+ else
+     result = 0;
+ end
+ 
+ if uistate.linetype.Value == 1
+     uistate.par_cspond(uistate.par_count - 1).label = result;
+ elseif uistate.linetype.Value == 2
+     disp('result');
+     disp(result);
+     uistate.perp_cspond(uistate.perp_count - 1).label = result;
+ end    
+ 
+ uistate.cid_cache.put('annotations','parallel_lines', uistate.par_cspond);
+ uistate.cid_cache.put('annotations','perpendicular_lines', uistate.perp_cspond);
+ 
+ 
+ 
+function reset_radiobuttons(uistate)
+if uistate.linetype.Value == 1
+    switch  uistate.par_cspond(uistate.par_count).label
+        case 0
+            uistate.radiobutton_good.Value = 0;
+            uistate.radiobutton_bad.Value = 0;
+            uistate.radiobutton_unlabeled.Value = 1;
+        case 1
+            uistate.radiobutton_good.Value = 1;
+            uistate.radiobutton_bad.Value = 0;
+            uistate.radiobutton_unlabeled.Value = 0;
+        case 2
+            uistate.radiobutton_good.Value = 0;
+            uistate.radiobutton_bad.Value = 1;
+            uistate.radiobutton_unlabeled.Value = 0;
+    end        
+else
+    switch  uistate.perp_cspond(uistate.perp_count).label
+        case 0
+            uistate.radiobutton_good.Value = 0;
+            uistate.radiobutton_bad.Value = 0;
+            uistate.radiobutton_unlabeled.Value = 1;
+        case 1
+            uistate.radiobutton_good.Value = 1;
+            uistate.radiobutton_bad.Value = 0;
+            uistate.radiobutton_unlabeled.Value = 0;
+        case 2
+            uistate.radiobutton_good.Value = 0;
+            uistate.radiobutton_bad.Value = 1;
+            uistate.radiobutton_unlabeled.Value = 0;
+    end      
+end  
+
+function draw_annotation(uistate)
+cid_cache = CASS.CidCache(uistate.img.cid);
+cid_cache.add_dependency('aiger:annotated', '-q 32 32');
+cid_cache.add_dependency('aiger:multiplane', '-q 32 32');
+aiger_ann = cid_cache.get('results', 'aiger:annotated');
+aiger_m = cid_cache.get('results', 'aiger:multiplane');
+
+imshow(uistate.img.data,'Parent',uistate.main_axes);  
+hold on
+if ~isempty(aiger_m) 
+    for j = 1:numel(aiger_m)
+        width = aiger_m(j).rect(1,2) - aiger_m(j).rect(1,1);
+        height = aiger_m(j).rect(2,2) - aiger_m(j).rect(2,1);        
+        rectangle('Position',[aiger_m(j).rect(1) aiger_m(j).rect(2) width height], 'LineWidth', 3, 'EdgeColor' ,[1 0 0])
+    end
+else
+    width = aiger_ann.rect(1,2) - aiger_ann.rect(1,1);
+    height = aiger_ann.rect(2,2) - aiger_ann.rect(2,1);    
+    rectangle('Position',[aiger_ann.rect(1) aiger_ann.rect(2) width height], 'LineWidth', 3, 'EdgeColor' ,[1 0 0])   
+end    
+hold off                   
+       
