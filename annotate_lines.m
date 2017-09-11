@@ -281,6 +281,7 @@ img_urls = arrayfun(@(x)[x.folder '/' x.name], ...
 
 function [] = update_lines(uistate)
 imshow(uistate.img.data,'Parent',uistate.main_axes);   
+draw_annotations(uistate);
 
 disp('Number of paralel line');
 disp(uistate.par_count);
@@ -288,16 +289,17 @@ disp('Number of perpendicular line');
 disp(uistate.perp_count);
 
 switch uistate.linetype.Value
-  case 1
-    draw_annotation_and_C_lines(uistate, 'par');  
+  case 1     
     draw_line_pair(gca,uistate.contour_list, ...
-       uistate.par_cspond,uistate.par_count, [0 0 0.8]); 
-  case 2
-    draw_annotation_and_C_lines(uistate, 'perp');  
+       uistate.par_cspond,uistate.par_count, [0 0 0.8]);
+    plot_C(uistate.contour_list, ...
+       uistate.par_cspond,uistate.par_count);
+  case 2      
     draw_line_pair(gca,uistate.contour_list, ...
                    uistate.perp_cspond,uistate.perp_count,[1 165/255 0]);
+    plot_C(uistate.contour_list, ...
+                   uistate.perp_cspond,uistate.perp_count);          
 end
-
 
 function draw_line_pair(ax,contour_list,cspond,idx,color)
 hold on;
@@ -313,8 +315,20 @@ LINE.draw(ax, contour_list(cspond(idx).cspond(1)).l, ...
 %     'Linewidth',3,'Color','w');
 
 LINE.draw(ax, contour_list(cspond(idx).cspond(2)).l, ...
-          'LineWidth',3,'Color',color);    
+          'LineWidth',3,'Color',color);   
 hold off;
+
+function plot_C(contour_list,cspond,idx)
+hold on
+plot(contour_list(cspond(idx).cspond(1)).C(1,:),...
+    contour_list(cspond(idx).cspond(1)).C(2,:),...
+    'Linewidth',4,'Color','green');
+
+plot(contour_list(cspond(idx).cspond(2)).C(1,:),...
+    contour_list(cspond(idx).cspond(2)).C(2,:),...
+    'Linewidth',4,'Color','green');
+
+hold off
 
 
 function uistate = save_cspond_label(uistate)
@@ -376,13 +390,13 @@ else
     end      
 end  
 
-function draw_annotation_and_C_lines(uistate, type)
+function draw_annotations(uistate)
 imshow(uistate.img.data,'Parent',uistate.main_axes); 
 
 if isempty(uistate.bounding_boxes)
     return
 end    
-hold on
+hold on  
 
 for j = 1:numel(uistate.bounding_boxes)
     width = uistate.bounding_boxes(j).rect(1,2) - uistate.bounding_boxes(j).rect(1,1);
@@ -390,24 +404,6 @@ for j = 1:numel(uistate.bounding_boxes)
     rectangle('Position',[uistate.bounding_boxes(j).rect(1) uistate.bounding_boxes(j).rect(2) width height],...
             'LineWidth', 3, 'EdgeColor' ,[1 0 0])
 end  
-
-if strcmp(type, 'par')
-    plot(uistate.contour_list(uistate.par_cspond(uistate.par_count).cspond(1)).C(1,:),...
-        uistate.contour_list(uistate.par_cspond(uistate.par_count).cspond(1)).C(2,:),...
-        'Linewidth',4,'Color','green');
-
-    plot(uistate.contour_list(uistate.par_cspond(uistate.par_count).cspond(2)).C(1,:),...
-        uistate.contour_list(uistate.par_cspond(uistate.par_count).cspond(2)).C(2,:),...
-        'Linewidth',4,'Color','green');
-else 
-    plot(uistate.contour_list(uistate.perp_cspond(uistate.perp_count).cspond(1)).C(1,:),...
-        uistate.contour_list(uistate.perp_cspond(uistate.perp_count).cspond(1)).C(2,:),...
-        'Linewidth',4,'Color','green');
-
-    plot(uistate.contour_list(uistate.perp_cspond(uistate.perp_count).cspond(2)).C(1,:),...
-        uistate.contour_list(uistate.perp_cspond(uistate.perp_count).cspond(2)).C(2,:),...
-        'Linewidth',4,'Color','green');
-end    
 hold off                   
    
 function [start_par_count, start_perp_count] = find_unlabeled_lines(uistate)
