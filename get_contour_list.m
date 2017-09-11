@@ -97,7 +97,7 @@ function par_cspond = make_par_cspond(contour_list,contour_ind)
     [ii,jj] = ind2sub([size(l,2) size(l,2)],par_inl_ind);
     sind = randperm(numel(ii));
     cspond_par = [contour_ind(ii(sind));contour_ind(jj(sind))];
-    max_num_par = min([100 size(cspond_par,2)]);
+    max_num_par = min([300 size(cspond_par,2)]);
 
     par_cspond = ...
         struct('cspond',mat2cell(cspond_par(:,1:max_num_par),2,ones(1,max_num_par)), ...
@@ -113,12 +113,12 @@ function perp_cspond = make_perp_cspond(contour_list,contour_ind)
     ltri = itril([size(l,2) size(l,2)],-1);
 
     perp_ind = find((theta(ltri) > 80) & (theta(ltri) < 100));
-    perp_inl_ind = ltri(find(perp_ind));
+    perp_inl_ind = ltri(perp_ind);
     [ii2,jj2] = ind2sub([size(l,2) size(l,2)],perp_inl_ind);
     sind = randperm(numel(ii2));
     cspond_perp = [contour_ind(ii2(sind));contour_ind(jj2(sind))];
-    max_num_perp = min([100 size(cspond_perp,2)]);
-    
+    theta_inl = theta(perp_inl_ind(sind));
+    max_num_perp = min([300 size(cspond_perp,2)]);
     perp_cspond = ...
         struct('cspond',mat2cell(cspond_perp(:,1:max_num_perp),2,ones(1,max_num_perp)), ...
                'label', mat2cell(zeros(1,max_num_perp),1,ones(1, ...
