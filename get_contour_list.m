@@ -46,7 +46,7 @@ function [contour_list,par_cspond,perp_cspond, cid_cache, bounding_boxes] = ...
     perp_cspond = ...
         cid_cache.get('annotations','perpendicular_lines');
     
-%     par_cspond = [];
+     par_cspond = [];
     if isempty(par_cspond)
         Gbox = [contour_list(:).box_id];
         par_cspond = cmp_splitapply(@(c,cind)...
@@ -83,7 +83,7 @@ function box_id = label_box_id(C,bounding_box_list)
     end
 
 function par_cspond = make_par_cspond(contour_list,contour_ind)    
-    sz = arrayfun(@(contour) size(contour.C,2), contour_list);
+%    sz = arrayfun(@(contour) size(contour.C,2), contour_list);
     
     l = [contour_list(:).l];
     c = abs(l(1:2,:)'*l(1:2,:));
@@ -94,7 +94,8 @@ function par_cspond = make_par_cspond(contour_list,contour_ind)
     par_ind = find(theta(ltri) < 5);
     par_inl_ind = ltri(par_ind);
     [ii,jj] = ind2sub([size(l,2) size(l,2)],par_inl_ind);
-    [~,sind] = sort(mean([sz(ii);sz(jj)],1),'descend');
+    %   [~,sind] = sort(mean([sz(ii);sz(jj)],1),'descend');
+    sind = randperm(numel(ii));
     cspond_par = [contour_ind(ii(sind));contour_ind(jj(sind))];
     max_num_par = min([100 size(cspond_par,2)]);
 
@@ -103,7 +104,7 @@ function par_cspond = make_par_cspond(contour_list,contour_ind)
                'label', mat2cell(zeros(1,max_num_par),1,ones(1,max_num_par)));
 
 function perp_cspond = make_perp_cspond(contour_list,contour_ind)    
-    sz = arrayfun(@(contour) size(contour.C,2), contour_list);
+%    sz = arrayfun(@(contour) size(contour.C,2), contour_list);
 
     l = [contour_list(:).l];
     c = abs(l(1:2,:)'*l(1:2,:));
@@ -114,7 +115,8 @@ function perp_cspond = make_perp_cspond(contour_list,contour_ind)
     perp_ind = theta(ltri) > 85; 
     perp_inl_ind = ltri(find(perp_ind));
     [ii2,jj2] = ind2sub([size(l,2) size(l,2)],perp_inl_ind);
-    [~,sind] = sort(mean([sz(ii2);sz(jj2)],1),'descend');
+    %    [~,sind] = sort(mean([sz(ii2);sz(jj2)],1),'descend');
+    sind = randperm(numel(ii2));
     cspond_perp = [contour_ind(ii2(sind));contour_ind(jj2(sind))];
     max_num_perp = min([100 size(cspond_perp,2)]);
     
