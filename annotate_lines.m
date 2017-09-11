@@ -22,7 +22,7 @@ function varargout = annotate_lines(varargin)
 
 % Edit the above text to modify the response to help annotate_lines
 
-% Last Modified by GUIDE v2.5 11-Sep-2017 15:04:27
+% Last Modified by GUIDE v2.5 11-Sep-2017 18:51:27
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -122,6 +122,8 @@ update_lines(uistate);
 
 guidata(gcf,uistate);
 
+see_status;
+
 % --- Executes on button press in nextimage.
 function nextimage_Callback(hObject, eventdata, handles)
 % hObject    handle to nextimage (see GCBO)
@@ -151,6 +153,7 @@ reset_radiobuttons(uistate); % my changes
 update_lines(uistate);
 
 guidata(gcf,uistate);
+see_status;
 
 % --- Executes on selection change in linetype.
 function linetype_Callback(hObject, eventdata, handles)
@@ -168,6 +171,7 @@ reset_radiobuttons(uistate);
 update_lines(uistate);
 
 guidata(gcf,uistate);
+see_status;
 
 % --- Executes during object creation, after setting all properties.
 function linetype_CreateFcn(hObject, eventdata, handles)
@@ -213,6 +217,7 @@ reset_radiobuttons(uistate); % my changes
 update_lines(uistate);
 
 guidata(gcf,uistate);
+see_status;
 
 
 
@@ -240,6 +245,7 @@ reset_radiobuttons(uistate);
 update_lines(uistate);
 
 guidata(gcf,uistate); 
+see_status;
 
 % --------------------------------------------------------------------
 function openfile_ClickedCallback(hObject, eventdata, handles)
@@ -268,6 +274,7 @@ if ~isequal(file_name, 0)
         guidata(gcf,uistate); 
 
         reset_radiobuttons(uistate); % my changes
+        see_status;
     end
 end
 
@@ -287,11 +294,6 @@ img_urls = arrayfun(@(x)[x.folder '/' x.name], ...
 function [] = update_lines(uistate)
 imshow(uistate.img.data,'Parent',uistate.main_axes);   
 draw_annotations(uistate);
-
-disp('Number of paralel line');
-disp(uistate.par_count);
-disp('Number of perpendicular line');
-disp(uistate.perp_count);
 
 switch uistate.linetype.Value
   case 1     
@@ -358,7 +360,7 @@ else
             uistate.radiobutton_bad.Value = 0;
             uistate.radiobutton_unlabeled.Value = 1;
         case 1
-            uistate.radiobutton_good.Value = 1;
+            uistata.radiobutton_good.Value = 1;
             uistate.radiobutton_bad.Value = 0;
             uistate.radiobutton_unlabeled.Value = 0;
         case 2
@@ -417,5 +419,37 @@ uistate.cid_cache.put('annotations','parallel_lines', uistate.par_cspond);
 uistate.cid_cache.put('annotations','perpendicular_lines', uistate.perp_cspond);
  
 guidata(gcf,uistate); 
- 
+see_status;
+nextlines_Callback([],[],[]);
 
+function see_status
+uistate = guidata(gcf);
+good_par = 0;
+good_perp = 0;
+for k = 1:numel(uistate.par_cspond)
+    if uistate.par_cspond(k).label == 1
+        good_par = good_par + 1;
+    end
+end
+
+for k = 1:numel(uistate.perp_cspond)
+    if uistate.perp_cspond(k).label == 1
+        good_perp = good_perp + 1;
+    end
+end
+
+    uistate.text1.String = sprintf('Idx par: %d', uistate.par_count);
+    uistate.text2.String = sprintf('Idx perp: %d', uistate.perp_count);     
+
+if good_par >= 20 
+    uistate.text3.String = 'Good par: DONE!';
+else 
+    uistate.text3.String = sprintf('Good par: %d', good_par);
+end    
+if good_perp >= 20 
+    uistate.text4.String = 'Good perp: DONE!';  
+else 
+    uistate.text4.String = sprintf('Good perp: %d', good_perp);       
+end     
+
+guidata(gcf,uistate); 
