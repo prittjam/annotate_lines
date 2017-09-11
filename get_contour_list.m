@@ -37,16 +37,17 @@ function [contour_list,par_cspond,perp_cspond, cid_cache, bounding_boxes] = ...
         
         cid_cache.put('annotations','contour_list', contour_list);
     end
-
     cd(pth);
 
-    par_cspond = ...
-        cid_cache.get('annotations','parallel_lines');
-
-    perp_cspond = ...
-        cid_cache.get('annotations','perpendicular_lines');
-    
-    if isempty(par_cspond)
+    num_contours = numel(contour_list);
+%    par_cspond = ...
+%        cid_cache.get('annotations','parallel_lines');
+%
+%    perp_cspond = ...
+%        cid_cache.get('annotations','perpendicular_lines');
+%
+    if true
+        %    if isempty(par_cspond)
         Gbox = [contour_list(:).box_id];
         par_cspond = cmp_splitapply(@(c,cind)...
                                     { make_par_cspond(c, cind) }, ...
@@ -85,15 +86,15 @@ function par_cspond = make_par_cspond(contour_list,contour_ind)
 %    sz = arrayfun(@(contour) size(contour.C,2), contour_list);
     
     l = [contour_list(:).l];
-    c = abs(l(1:2,:)'*l(1:2,:));
+    c = l(1:2,:)'*l(1:2,:);
     c(c>1) = 1;
+    c(c<-1) = -1;
     theta = acos(c)*180/pi;
     ltri = itril([size(l,2) size(l,2)],-1);
     
-    par_ind = find(theta(ltri) < 10);
+    par_ind = find((theta(ltri) < 10) | (theta(ltri) > 170));
     par_inl_ind = ltri(par_ind);
     [ii,jj] = ind2sub([size(l,2) size(l,2)],par_inl_ind);
-    %   [~,sind] = sort(mean([sz(ii);sz(jj)],1),'descend');
     sind = randperm(numel(ii));
     cspond_par = [contour_ind(ii(sind));contour_ind(jj(sind))];
     max_num_par = min([100 size(cspond_par,2)]);
@@ -104,17 +105,16 @@ function par_cspond = make_par_cspond(contour_list,contour_ind)
 
 function perp_cspond = make_perp_cspond(contour_list,contour_ind)    
 %    sz = arrayfun(@(contour) size(contour.C,2), contour_list);
-
     l = [contour_list(:).l];
-    c = abs(l(1:2,:)'*l(1:2,:));
+    c = l(1:2,:)'*l(1:2,:);
     c(c>1) = 1;
+    c(c<-1) = -1;
     theta = acos(c)*180/pi;
     ltri = itril([size(l,2) size(l,2)],-1);
 
-    perp_ind = theta(ltri) > 80; 
+    perp_ind = find((theta(ltri) > 80) & (theta(ltri) < 100));
     perp_inl_ind = ltri(find(perp_ind));
     [ii2,jj2] = ind2sub([size(l,2) size(l,2)],perp_inl_ind);
-    %    [~,sind] = sort(mean([sz(ii2);sz(jj2)],1),'descend');
     sind = randperm(numel(ii2));
     cspond_perp = [contour_ind(ii2(sind));contour_ind(jj2(sind))];
     max_num_perp = min([100 size(cspond_perp,2)]);
