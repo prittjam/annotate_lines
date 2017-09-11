@@ -290,43 +290,27 @@ disp(uistate.perp_count);
 
 switch uistate.linetype.Value
   case 1
-    lh = draw_line_pair(gca,uistate.contour_list, ...
-                   uistate.par_cspond,uistate.par_count, [0 0 0.8]);
-    
-    % maksym added
-    % if lines aren't in polygone draw them black 
-    keep_lines = polygon_area(uistate, lh);
-    if keep_lines == 0
-       draw_line_pair(gca,uistate.contour_list, ...
-                   uistate.par_cspond,uistate.par_count, [0 0 0]);
-    end 
+    draw_line_pair(gca,uistate.contour_list, ...
+                   uistate.par_cspond,uistate.par_count, [0 0 0.8]); 
   case 2
-    lh = draw_line_pair(gca,uistate.contour_list, ...
+    draw_line_pair(gca,uistate.contour_list, ...
                    uistate.perp_cspond,uistate.perp_count,[1 165/255 0]);
-               
-    % maksym added
-    % if lines aren't in polygone draw them black 
-    keep_lines = polygon_area(uistate, lh);
-    if keep_lines == 0
-        draw_line_pair(gca,uistate.contour_list, ...
-                   uistate.perp_cspond,uistate.perp_count,[0 0 0]);
-    end           
 end
 
 
-function [lh] = draw_line_pair(ax,contour_list,cspond,idx,color)
+function draw_line_pair(ax,contour_list,cspond,idx,color)
 hold on;
 %plot(contour_list(cspond(idx).cspond(1)).C(1,:),...
 %     contour_list(cspond(idx).cspond(1)).C(2,:),...
 %     'Linewidth',3,'Color','w');
 
-lh(1) = LINE.draw(ax, contour_list(cspond(idx).cspond(1)).l, ...
+LINE.draw(ax, contour_list(cspond(idx).cspond(1)).l, ...
           'LineWidth',3,'Color',color);       
 
 %plot(contour_list(cspond(idx).cspond(2)).C(1,:),...
 %     contour_list(cspond(idx).cspond(2)).C(2,:),...
 %     'Linewidth',3,'Color','w');
-lh(2) = LINE.draw(ax, contour_list(cspond(idx).cspond(2)).l, ...
+LINE.draw(ax, contour_list(cspond(idx).cspond(2)).l, ...
           'LineWidth',3,'Color',color);
 hold off;
 
