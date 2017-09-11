@@ -300,18 +300,19 @@ end
 
 function draw_line_pair(ax,contour_list,cspond,idx,color)
 hold on;
-%plot(contour_list(cspond(idx).cspond(1)).C(1,:),...
+% plot(contour_list(cspond(idx).cspond(1)).C(1,:),...
 %     contour_list(cspond(idx).cspond(1)).C(2,:),...
 %     'Linewidth',3,'Color','w');
 
 LINE.draw(ax, contour_list(cspond(idx).cspond(1)).l, ...
           'LineWidth',3,'Color',color);       
 
-%plot(contour_list(cspond(idx).cspond(2)).C(1,:),...
+% plot(contour_list(cspond(idx).cspond(2)).C(1,:),...
 %     contour_list(cspond(idx).cspond(2)).C(2,:),...
 %     'Linewidth',3,'Color','w');
+
 LINE.draw(ax, contour_list(cspond(idx).cspond(2)).l, ...
-          'LineWidth',3,'Color',color);
+          'LineWidth',3,'Color',color);    
 hold off;
 
 
@@ -389,9 +390,17 @@ for j = 1:numel(uistate.bounding_boxes)
             'LineWidth', 3, 'EdgeColor' ,[1 0 0])
 end  
 
-for j = 1:numel(uistate.contour_list)
-    plot(uistate.contour_list(j).C(1,:), uistate.contour_list(j).C(2,:), 'LineWidth', 2, 'Color', [0 1 0]);
-end
+plot(uistate.contour_list(uistate.par_cspond(uistate.par_count).cspond(1)).C(1,:),...
+    uistate.contour_list(uistate.par_cspond(uistate.par_count).cspond(1)).C(2,:),...
+    'Linewidth',4,'Color','green');
+
+plot(uistate.contour_list(uistate.perp_cspond(uistate.perp_count).cspond(2)).C(1,:),...
+    uistate.contour_list(uistate.perp_cspond(uistate.perp_count).cspond(2)).C(2,:),...
+    'Linewidth',4,'Color','green');
+% keyboard
+% for j = 1:numel(uistate.contour_list)
+%     plot(uistate.contour_list(j).C(1,:), uistate.contour_list(j).C(2,:), 'LineWidth', 2, 'Color', [0 1 0]);
+% end
   
 hold off                   
    
