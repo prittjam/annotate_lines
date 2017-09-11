@@ -281,7 +281,6 @@ img_urls = arrayfun(@(x)[x.folder '/' x.name], ...
 
 function [] = update_lines(uistate)
 imshow(uistate.img.data,'Parent',uistate.main_axes);   
-draw_annotation_and_C_lines(uistate);
 
 disp('Number of paralel line');
 disp(uistate.par_count);
@@ -290,9 +289,11 @@ disp(uistate.perp_count);
 
 switch uistate.linetype.Value
   case 1
+    draw_annotation_and_C_lines(uistate, 'par');  
     draw_line_pair(gca,uistate.contour_list, ...
        uistate.par_cspond,uistate.par_count, [0 0 0.8]); 
   case 2
+    draw_annotation_and_C_lines(uistate, 'perp');  
     draw_line_pair(gca,uistate.contour_list, ...
                    uistate.perp_cspond,uistate.perp_count,[1 165/255 0]);
 end
@@ -375,7 +376,7 @@ else
     end      
 end  
 
-function draw_annotation_and_C_lines(uistate)
+function draw_annotation_and_C_lines(uistate, type)
 imshow(uistate.img.data,'Parent',uistate.main_axes); 
 
 if isempty(uistate.bounding_boxes)
@@ -390,14 +391,23 @@ for j = 1:numel(uistate.bounding_boxes)
             'LineWidth', 3, 'EdgeColor' ,[1 0 0])
 end  
 
-plot(uistate.contour_list(uistate.par_cspond(uistate.par_count).cspond(1)).C(1,:),...
-    uistate.contour_list(uistate.par_cspond(uistate.par_count).cspond(1)).C(2,:),...
-    'Linewidth',4,'Color','green');
+if strcmp(type, 'par')
+    plot(uistate.contour_list(uistate.par_cspond(uistate.par_count).cspond(1)).C(1,:),...
+        uistate.contour_list(uistate.par_cspond(uistate.par_count).cspond(1)).C(2,:),...
+        'Linewidth',4,'Color','green');
 
-plot(uistate.contour_list(uistate.perp_cspond(uistate.perp_count).cspond(2)).C(1,:),...
-    uistate.contour_list(uistate.perp_cspond(uistate.perp_count).cspond(2)).C(2,:),...
-    'Linewidth',4,'Color','green');
+    plot(uistate.contour_list(uistate.par_cspond(uistate.par_count).cspond(2)).C(1,:),...
+        uistate.contour_list(uistate.par_cspond(uistate.par_count).cspond(2)).C(2,:),...
+        'Linewidth',4,'Color','green');
+else 
+    plot(uistate.contour_list(uistate.perp_cspond(uistate.perp_count).cspond(1)).C(1,:),...
+        uistate.contour_list(uistate.perp_cspond(uistate.perp_count).cspond(1)).C(2,:),...
+        'Linewidth',4,'Color','green');
 
+    plot(uistate.contour_list(uistate.perp_cspond(uistate.perp_count).cspond(2)).C(1,:),...
+        uistate.contour_list(uistate.perp_cspond(uistate.perp_count).cspond(2)).C(2,:),...
+        'Linewidth',4,'Color','green');
+end    
 hold off                   
    
 function [start_par_count, start_perp_count] = find_unlabeled_lines(uistate)
