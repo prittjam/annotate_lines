@@ -4,12 +4,12 @@ function [contour_list,par_cspond,perp_cspond, cid_cache, bounding_boxes] = ...
     pth = pwd;
     model = get_dollar_model();
 
-    cid_cache.add_dependency('contours',model.opts);
+    cid_cache.add_dependency('contour_list',model.opts);
 
     cid_cache.add_dependency('parallel_lines',[], ...
-                             'parents','contours'); 
+                             'parents','contour_list'); 
     cid_cache.add_dependency('perpendicular_lines',[], ...
-                             'parents','contours'); 
+                             'parents','contour_list'); 
                          
     cid_cache.add_dependency('bounding_boxes', []);   % maksym added                  
 
@@ -46,7 +46,6 @@ function [contour_list,par_cspond,perp_cspond, cid_cache, bounding_boxes] = ...
     perp_cspond = ...
         cid_cache.get('annotations','perpendicular_lines');
     
-%     par_cspond = [];
     if isempty(par_cspond)
         Gbox = [contour_list(:).box_id];
         par_cspond = cmp_splitapply(@(c,cind)...
@@ -91,7 +90,7 @@ function par_cspond = make_par_cspond(contour_list,contour_ind)
     theta = acos(c)*180/pi;
     ltri = itril([size(l,2) size(l,2)],-1);
     
-    par_ind = find(theta(ltri) < 5);
+    par_ind = find(theta(ltri) < 10);
     par_inl_ind = ltri(par_ind);
     [ii,jj] = ind2sub([size(l,2) size(l,2)],par_inl_ind);
     %   [~,sind] = sort(mean([sz(ii);sz(jj)],1),'descend');
@@ -112,7 +111,7 @@ function perp_cspond = make_perp_cspond(contour_list,contour_ind)
     theta = acos(c)*180/pi;
     ltri = itril([size(l,2) size(l,2)],-1);
 
-    perp_ind = theta(ltri) > 85; 
+    perp_ind = theta(ltri) > 80; 
     perp_inl_ind = ltri(find(perp_ind));
     [ii2,jj2] = ind2sub([size(l,2) size(l,2)],perp_inl_ind);
     %    [~,sind] = sort(mean([sz(ii2);sz(jj2)],1),'descend');
