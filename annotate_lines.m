@@ -22,7 +22,7 @@ function varargout = annotate_lines(varargin)
 
 % Edit the above text to modify the response to help annotate_lines
 
-% Last Modified by GUIDE v2.5 06-Sep-2017 16:12:48
+% Last Modified by GUIDE v2.5 11-Sep-2017 15:04:27
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -72,6 +72,11 @@ uistate.main_axes = gca;
 
 uistate.par_count = 1;
 uistate.perp_count = 1;
+
+set(gcf, 'units','normalized','outerposition',[0 0 1 1]);  
+
+uistate.uibuttongroup.SelectionChangedFcn = @(bg,uistate) radiobuttons_control(bg,uistate);
+
 guidata(gcf,uistate);
 
 % UIWAIT makes annotate_lines wait for user response (see UIRESUME)
@@ -110,6 +115,7 @@ uistate.handles.img = imshow(uistate.img.data,'Parent',gca);
 
 uistate.par_count = start_par_count; % = 1
 uistate.perp_count = start_perp_count; % = 1 
+
 reset_radiobuttons(uistate); % my changes
 
 update_lines(uistate);
@@ -155,6 +161,8 @@ function linetype_Callback(hObject, eventdata, handles)
 % Hints: contents = cellstr(get(hObject,'String')) returns linetype contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from linetype
 uistate = guidata(gcf);
+
+reset_radiobuttons(uistate);
 %uistate.linetype = eventdata.Source.Value;
 
 update_lines(uistate);
@@ -216,8 +224,6 @@ function nextlines_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 uistate = guidata(gcf);
 
-uistate = save_cspond_label(uistate); % my changes
-
 switch uistate.linetype.Value
   case 1
     N = numel(uistate.par_cspond);
@@ -242,7 +248,6 @@ function openfile_ClickedCallback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 uistate = guidata(gcf);
-    
 [file_name,path] = uigetfile({'*.png;*.jpg;*.gif;*.JPG','Pictures (*.png,*.jpg,*.gif)';'*.mat', 'Repeats (*.mat)'});
 
 if ~isequal(file_name, 0)
@@ -329,33 +334,6 @@ plot(contour_list(cspond(idx).cspond(2)).C(1,:),...
     'Linewidth',4,'Color','green');
 
 hold off
-
-
-function uistate = save_cspond_label(uistate)
-disp('save cspond label');
-disp('Number of paralel line');
-disp(uistate.par_count);
-disp('Number of perpendicular line');
-disp(uistate.perp_count);
-
- if uistate.radiobutton_good.Value == 1
-     result = 1;
- elseif uistate.radiobutton_bad.Value == 1
-     result = 2;
- else
-     result = 0;
- end
- 
- if uistate.linetype.Value == 1
-     uistate.par_cspond(uistate.par_count).label = result; 
- elseif uistate.linetype.Value == 2
-     uistate.perp_cspond(uistate.perp_count).label = result;
- end    
- 
- uistate.cid_cache.put('annotations','parallel_lines', uistate.par_cspond);
- uistate.cid_cache.put('annotations','perpendicular_lines', uistate.perp_cspond);
- 
- 
  
 function reset_radiobuttons(uistate)
 if uistate.linetype.Value == 1
@@ -419,3 +397,25 @@ for i = 1:numel(uistate.perp_cspond)
        break;
     end
 end
+
+function radiobuttons_control(bg,~)
+uistate = guidata(gcf);
+ if strcmp(bg.Children(3).String, 'Good') == 1 && bg.Children(3).Value == 1
+     result = 1;
+ elseif strcmp(bg.Children(2).String, 'Bad') == 1 && bg.Children(2).Value == 1
+     result = 2;
+ else
+     result = 0;
+ end
+if uistate.linetype.Value == 1
+     uistate.par_cspond(uistate.par_count).label = result; 
+elseif uistate.linetype.Value == 2
+     uistate.perp_cspond(uistate.perp_count).label = result;
+end    
+ 
+uistate.cid_cache.put('annotations','parallel_lines', uistate.par_cspond);
+uistate.cid_cache.put('annotations','perpendicular_lines', uistate.perp_cspond);
+ 
+guidata(gcf,uistate); 
+ 
+
