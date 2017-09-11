@@ -228,7 +228,7 @@ switch uistate.linetype.Value
 %     uistate.perp_count = uistate.perp_count+1;
      uistate.perp_count = mod(uistate.perp_count, N) + 1;
 end
-
+% keyboard
 reset_radiobuttons(uistate);
 
 update_lines(uistate);
@@ -291,7 +291,7 @@ disp(uistate.perp_count);
 switch uistate.linetype.Value
   case 1
     draw_line_pair(gca,uistate.contour_list, ...
-                   uistate.par_cspond,uistate.par_count, [0 0 0.8]); 
+       uistate.par_cspond,uistate.par_count, [0 0 0.8]); 
   case 2
     draw_line_pair(gca,uistate.contour_list, ...
                    uistate.perp_cspond,uistate.perp_count,[1 165/255 0]);

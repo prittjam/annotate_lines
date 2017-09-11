@@ -22,6 +22,7 @@ function [contour_list,par_cspond,perp_cspond, cid_cache, bounding_boxes] = ...
         cd(pth);
         pts = DL.segment_contours(E);
         C = cmp_splitapply(@(x) { x },[pts(:).x],[pts(:).G]);
+      
         box_id_list = cellfun(@(x) label_box_id(x,bounding_boxes),C);
 
         num_contours = numel(C);
@@ -42,10 +43,11 @@ function [contour_list,par_cspond,perp_cspond, cid_cache, bounding_boxes] = ...
     par_cspond = ...
         cid_cache.get('annotations','parallel_lines');
 
+    keyboard
     perp_cspond = ...
         cid_cache.get('annotations','perpendicular_lines');
     
-    par_cspond = [];
+%     par_cspond = [];
     if isempty(par_cspond)
         Gbox = [contour_list(:).box_id];
         par_cspond = cmp_splitapply(@(c,cind)...
@@ -53,6 +55,7 @@ function [contour_list,par_cspond,perp_cspond, cid_cache, bounding_boxes] = ...
                                     contour_list, ...
                                     1:num_contours,Gbox);
         par_cspond = par_cspond{:};
+        keyboard
         cid_cache.put('annotations','parallel_lines',par_cspond);
         
         perp_cspond = cmp_splitapply(@(c,cind) { make_perp_cspond(c,cind) }, ...
