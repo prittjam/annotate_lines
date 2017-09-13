@@ -461,12 +461,14 @@ end
     uistate.text1.String = sprintf('Idx par: %d', uistate.par_count);
     uistate.text2.String = sprintf('Idx perp: %d', uistate.perp_count);     
 
-if good_par >= 20 
+Nplanes = numel(uistate.bounding_boxes);    
+    
+if good_par >= 20*Nplanes 
     uistate.text3.String = 'Good par: DONE!';
 else 
     uistate.text3.String = sprintf('Good par: %d', good_par);
 end    
-if good_perp >= 20 
+if good_perp >= 20*Nplanes 
     uistate.text4.String = 'Good perp: DONE!';  
 else 
     uistate.text4.String = sprintf('Good perp: %d', good_perp);       
