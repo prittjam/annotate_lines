@@ -110,7 +110,11 @@ end
 uistate.img = Img('url',uistate.img_urls{uistate.cur_url_id});       
 uistate.handles.img = imshow(uistate.img.data,'Parent',gca);    
 [uistate.contour_list,uistate.par_cspond,uistate.perp_cspond, uistate.cid_cache, uistate.bounding_boxes] = ...
-    get_contour_list(uistate.img);    
+    get_contour_list(uistate.img);   
+
+disp(numel(uistate.par_cspond));
+disp(numel(uistate.perp_cspond));
+
 [start_par_count, start_perp_count] = find_unlabeled_lines(uistate);
 
 uistate.par_count = start_par_count; % = 1
@@ -142,7 +146,11 @@ uistate.cur_url_id = mod(uistate.cur_url_id, N)+1; % maksym added
 uistate.img = Img('url',uistate.img_urls{uistate.cur_url_id});  
 uistate.handles.img = imshow(uistate.img.data,'Parent',gca);    
 [uistate.contour_list,uistate.par_cspond,uistate.perp_cspond, uistate.cid_cache, uistate.bounding_boxes] = ...
-    get_contour_list(uistate.img);    
+    get_contour_list(uistate.img);   
+
+disp(numel(uistate.par_cspond));
+disp(numel(uistate.perp_cspond));
+
 [start_par_count, start_perp_count] = find_unlabeled_lines(uistate);
 
 uistate.par_count = start_par_count; % = 1
@@ -264,7 +272,8 @@ if ~isequal(file_name, 0)
         uistate.img = Img('url',uistate.img_urls{uistate.cur_url_id}); 
         [uistate.contour_list,uistate.par_cspond,uistate.perp_cspond, uistate.cid_cache, uistate.bounding_boxes] = ...
             get_contour_list(uistate.img);
-                
+         disp(numel(uistate.par_cspond));
+        disp(numel(uistate.perp_cspond));       
         [start_par_count, start_perp_count] = find_unlabeled_lines(uistate);
         uistate.par_count = start_par_count;
         uistate.perp_count = start_perp_count;
@@ -274,6 +283,7 @@ if ~isequal(file_name, 0)
         guidata(gcf,uistate); 
 
         reset_radiobuttons(uistate); % my changes
+
         see_status;
     end
 end
@@ -339,6 +349,10 @@ hold off
  
 function reset_radiobuttons(uistate)
 if uistate.linetype.Value == 1
+    if numel(uistate.par_cspond) == 0
+        disp('No paralel pairs');
+        return
+    end 
     switch  uistate.par_cspond(uistate.par_count).label
         case 0
             uistate.radiobutton_good.Value = 0;
@@ -354,13 +368,17 @@ if uistate.linetype.Value == 1
             uistate.radiobutton_unlabeled.Value = 0;
     end        
 else
+    if numel(uistate.perp_cspond) == 0
+        disp('No perpendicular pairs');
+        return
+    end    
     switch  uistate.perp_cspond(uistate.perp_count).label
         case 0
             uistate.radiobutton_good.Value = 0;
             uistate.radiobutton_bad.Value = 0;
             uistate.radiobutton_unlabeled.Value = 1;
         case 1
-            uistata.radiobutton_good.Value = 1;
+            uistate.radiobutton_good.Value = 1;
             uistate.radiobutton_bad.Value = 0;
             uistate.radiobutton_unlabeled.Value = 0;
         case 2
@@ -387,6 +405,8 @@ end
 hold off                   
    
 function [start_par_count, start_perp_count] = find_unlabeled_lines(uistate)
+start_par_count = 1;
+start_perp_count = 1;
 for i = 1:numel(uistate.par_cspond)
     if uistate.par_cspond(i).label == 0
        start_par_count = i;
@@ -453,3 +473,4 @@ else
 end     
 
 guidata(gcf,uistate); 
+  
