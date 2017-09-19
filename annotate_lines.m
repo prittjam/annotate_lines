@@ -22,7 +22,7 @@ function varargout = annotate_lines(varargin)
 
 % Edit the above text to modify the response to help annotate_lines
 
-% Last Modified by GUIDE v2.5 11-Sep-2017 18:51:27
+% Last Modified by GUIDE v2.5 16-Sep-2017 13:58:57
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -125,7 +125,7 @@ reset_radiobuttons(uistate); % my changes
 update_lines(uistate);
 
 guidata(gcf,uistate);
-
+[Npar, Nperp] = count_cspond_pairs()
 see_status;
 
 % --- Executes on button press in nextimage.
@@ -143,13 +143,12 @@ N = numel(uistate.img_urls);
 
 uistate.cur_url_id = mod(uistate.cur_url_id, N)+1; % maksym added
 
+disp(uistate.cur_url_id);
+
 uistate.img = Img('url',uistate.img_urls{uistate.cur_url_id});  
 uistate.handles.img = imshow(uistate.img.data,'Parent',gca);    
 [uistate.contour_list,uistate.par_cspond,uistate.perp_cspond, uistate.cid_cache, uistate.bounding_boxes] = ...
     get_contour_list(uistate.img);   
-
-disp(numel(uistate.par_cspond));
-disp(numel(uistate.perp_cspond));
 
 [start_par_count, start_perp_count] = find_unlabeled_lines(uistate);
 
@@ -161,6 +160,9 @@ reset_radiobuttons(uistate); % my changes
 update_lines(uistate);
 
 guidata(gcf,uistate);
+
+[Npar, Nperp] = count_cspond_pairs()
+
 see_status;
 
 % --- Executes on selection change in linetype.
@@ -272,8 +274,7 @@ if ~isequal(file_name, 0)
         uistate.img = Img('url',uistate.img_urls{uistate.cur_url_id}); 
         [uistate.contour_list,uistate.par_cspond,uistate.perp_cspond, uistate.cid_cache, uistate.bounding_boxes] = ...
             get_contour_list(uistate.img);
-         disp(numel(uistate.par_cspond));
-        disp(numel(uistate.perp_cspond));       
+  
         [start_par_count, start_perp_count] = find_unlabeled_lines(uistate);
         uistate.par_count = start_par_count;
         uistate.perp_count = start_perp_count;
@@ -281,6 +282,8 @@ if ~isequal(file_name, 0)
         update_lines(uistate);
 
         guidata(gcf,uistate); 
+        
+        [Npar, Nperp] = count_cspond_pairs()
 
         reset_radiobuttons(uistate); % my changes
 
@@ -444,35 +447,135 @@ nextlines_Callback([],[],[]);
 
 function see_status
 uistate = guidata(gcf);
-good_par = 0;
-good_perp = 0;
-for k = 1:numel(uistate.par_cspond)
-    if uistate.par_cspond(k).label == 1
-        good_par = good_par + 1;
-    end
-end
 
-for k = 1:numel(uistate.perp_cspond)
-    if uistate.perp_cspond(k).label == 1
-        good_perp = good_perp + 1;
-    end
-end
-
-    uistate.text1.String = sprintf('Idx par: %d', uistate.par_count);
-    uistate.text2.String = sprintf('Idx perp: %d', uistate.perp_count);     
+uistate.text1.String = sprintf('Idx par: %d', uistate.par_count);
+uistate.text2.String = sprintf('Idx perp: %d', uistate.perp_count);     
 
 Nplanes = numel(uistate.bounding_boxes);    
-    
-if good_par >= 20*Nplanes 
-    uistate.text3.String = 'Good par: DONE!';
-else 
-    uistate.text3.String = sprintf('Good par: %d', good_par);
-end    
-if good_perp >= 20*Nplanes 
-    uistate.text4.String = 'Good perp: DONE!';  
-else 
-    uistate.text4.String = sprintf('Good perp: %d', good_perp);       
-end     
+[count_good_par, count_good_perp] = find_good_pairs;
+% keyboard
+final_str_par = ''; final_str_perp = '';
 
+for k = 1:Nplanes
+    if count_good_par(k) >= 20 
+        final_str_par = sprintf('%sD ',final_str_par);
+    else 
+        final_str_par = sprintf('%s%d ',final_str_par, count_good_par(k));
+    end
+    
+    if count_good_perp(k) >= 20 
+        final_str_perp = sprintf('%sD ',final_str_perp);
+    else  
+        final_str_perp = sprintf('%s%d ',final_str_perp, count_good_perp(k));
+    end
+end
+uistate.text3.String = sprintf('Good par: %s', final_str_par);
+uistate.text4.String = sprintf('Good perp: %s', final_str_perp);
 guidata(gcf,uistate); 
   
+function [Npar, Nperp] = count_cspond_pairs()
+
+uistate = guidata(gcf);
+bounding_box_list = uistate.bounding_boxes;
+Npar = zeros(1,numel(bounding_box_list));
+Nperp = zeros(1,numel(bounding_box_list));
+for k = 1:numel(bounding_box_list)
+    x = [bounding_box_list(k).rect(:,1) ...
+        [bounding_box_list(k).rect(1,2); bounding_box_list(k).rect(2,1)] ...
+        bounding_box_list(k).rect(:,2) ...
+        [bounding_box_list(k).rect(1,1); bounding_box_list(k).rect(2,2)] ];
+    convind = convhull(x');
+    x = x(:,convind);
+
+    for q = 1:numel(uistate.par_cspond)
+        C1 = uistate.contour_list(uistate.par_cspond(q).cspond(1)).C;
+        inl1 = inpolygon(C1(1,:), C1(2,:), x(1,:), x(2,:));
+        C2 = uistate.contour_list(uistate.par_cspond(q).cspond(2)).C;
+        inl2 = inpolygon(C2(1,:), C2(2,:), x(1,:), x(2,:));
+        t = (sum(inl1)/numel(inl1) > 0.5) && (sum(inl2)/numel(inl2) > 0.5);
+        Npar(k) = Npar(k) + double(t);
+    end
+    
+    for q = 1:numel(uistate.perp_cspond)
+        C1 = uistate.contour_list(uistate.perp_cspond(q).cspond(1)).C;
+        inl1 = inpolygon(C1(1,:), C1(2,:), x(1,:), x(2,:));
+        C2 = uistate.contour_list(uistate.perp_cspond(q).cspond(2)).C;
+        inl2 = inpolygon(C2(1,:), C2(2,:), x(1,:), x(2,:));
+        t = (sum(inl1)/numel(inl1) > 0.5) && (sum(inl2)/numel(inl2) > 0.5);
+        Nperp(k) = Nperp(k) + double(t);
+    end
+end    
+uistate.Npar = Npar;
+uistate.Nperp = Nperp;
+% keyboard
+guidata(gcf, uistate);
+
+function [count_good_par, count_good_perp] = find_good_pairs
+uistate = guidata(gcf);
+%  [Npar, Nperp] = count_cspond_pairs;
+Npar = uistate.Npar;
+Nperp = uistate.Nperp;
+% keyboard
+Npar_temp = zeros(1, numel(Npar));
+Nperp_temp = zeros(1, numel(Nperp));
+Npar_temp(1) = Npar(1);
+Nperp_temp(1) = Nperp(1);
+for k = 2:numel(uistate.bounding_boxes)
+    Npar_temp(k) = Npar(k) + Npar_temp(k-1);
+    Nperp_temp(k) = Nperp(k) + Nperp_temp(k-1);
+end
+count_good_par = zeros(1, numel(uistate.bounding_boxes));
+count_good_perp = zeros(1, numel(uistate.bounding_boxes));
+
+f = 1; ff = 1;
+for k = 1:numel(uistate.bounding_boxes)
+    for kk = f:Npar_temp(k)
+        if uistate.par_cspond(kk).label == 1
+            count_good_par(k) = count_good_par(k) + 1;
+        end
+    end
+    for kk = ff:Nperp_temp(k)
+        if uistate.perp_cspond(kk).label == 1
+            count_good_perp(k) = count_good_perp(k) + 1;
+        end
+    end
+    f = Npar_temp(k) + 1;
+    ff = Nperp_temp(k) + 1;
+end
+
+function next_plane_Callback(hObject, eventdata, handles)
+uistate = guidata(gcf);
+[Npar, Nperp] = count_cspond_pairs;
+linetype = uistate.linetype.Value;
+curr_par = uistate.par_count;
+curr_perp = uistate.perp_count;
+Npar_temp = zeros(1, numel(Npar));
+Nperp_temp = zeros(1, numel(Nperp));
+Npar_temp(1) = Npar(1);
+Nperp_temp(1) = Nperp(1);
+for k = 2:numel(uistate.bounding_boxes)
+    Npar_temp(k) = Npar(k) + Npar_temp(k-1);
+    Nperp_temp(k) = Nperp(k) + Nperp_temp(k-1);
+end
+go_to = 1;
+if linetype == 1
+    for q = 1:numel(Npar)
+        if Npar_temp(q) - curr_par >= 0
+           go_to = mod(q, numel(Npar)) + 1;
+           break;
+        end
+    end   
+    uistate.par_count = Npar_temp(go_to) - Npar(go_to);
+else
+    for q = 1:numel(Nperp)
+        if Nperp_temp(q) - curr_perp >= 0
+           go_to = mod(q, numel(Nperp)) + 1;
+           break;
+        end
+    end     
+    uistate.perp_count = Nperp_temp(go_to)- Nperp(go_to);
+end    
+
+guidata(gcf, uistate);
+see_status;
+nextlines_Callback([],[],[]);
