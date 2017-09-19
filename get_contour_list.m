@@ -22,9 +22,9 @@ function [contour_list,par_cspond,perp_cspond, cid_cache, bounding_boxes] = ...
         cd(pth);
         pts = DL.segment_contours(E);
         C = cmp_splitapply(@(x) { x },[pts(:).x],[pts(:).G]);
-      
+        
         box_id_list = cellfun(@(x) label_box_id(x,bounding_boxes),C);
-
+        
         num_contours = numel(C);
         l = zeros(3,num_contours);
         for k = 1:numel(C)
@@ -53,16 +53,19 @@ function [contour_list,par_cspond,perp_cspond, cid_cache, bounding_boxes] = ...
                                     { make_par_cspond(c, cind) }, ...
                                     contour_list, ...
                                     1:num_contours,Gbox);
-        par_cspond = par_cspond{:};
-
+                                
+        par_cspond = [par_cspond{:}];
         cid_cache.put('annotations','parallel_lines',par_cspond);
         
         perp_cspond = cmp_splitapply(@(c,cind) { make_perp_cspond(c,cind) }, ...
                                      contour_list,1:num_contours, ...
                                      Gbox);
-        perp_cspond = perp_cspond{:};
+        perp_cspond = [perp_cspond{:}];
         cid_cache.put('annotations','perpendicular_lines',perp_cspond);
     end
+
+    
+    
     
     
 function box_id = label_box_id(C,bounding_box_list)
@@ -77,14 +80,14 @@ function box_id = label_box_id(C,bounding_box_list)
         inl = inpolygon(C(1,:), C(2,:), x(1,:), x(2,:));
         in_box(k) = sum(inl)/numel(inl) > 0.5;
     end
+    
     box_id = min(find(in_box));
     if isempty(box_id)
         box_id = nan;
-    end
+    end      
 
 function par_cspond = make_par_cspond(contour_list,contour_ind)    
 %    sz = arrayfun(@(contour) size(contour.C,2), contour_list);
-    
     l = [contour_list(:).l];
     c = l(1:2,:)'*l(1:2,:);
     c(c>1) = 1;
@@ -102,7 +105,8 @@ function par_cspond = make_par_cspond(contour_list,contour_ind)
     par_cspond = ...
         struct('cspond',mat2cell(cspond_par(:,1:max_num_par),2,ones(1,max_num_par)), ...
                'label', mat2cell(zeros(1,max_num_par),1,ones(1,max_num_par)));
-
+           
+           
 function perp_cspond = make_perp_cspond(contour_list,contour_ind)    
 %    sz = arrayfun(@(contour) size(contour.C,2), contour_list);
     l = [contour_list(:).l];
@@ -122,4 +126,5 @@ function perp_cspond = make_perp_cspond(contour_list,contour_ind)
     perp_cspond = ...
         struct('cspond',mat2cell(cspond_perp(:,1:max_num_perp),2,ones(1,max_num_perp)), ...
                'label', mat2cell(zeros(1,max_num_perp),1,ones(1, ...
-                                                      max_num_perp))); 
+                                                      max_num_perp)));                            
+
