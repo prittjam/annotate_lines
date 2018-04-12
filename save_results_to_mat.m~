@@ -1,0 +1,42 @@
+directory = '~/Downloads/gtrepeat_dataset/resized/';
+save_directory = '~/annotate_lines/results/';
+
+images = dir(directory);
+
+pth = pwd;
+
+model = get_dollar_model();
+
+% annotation_lines = struct('contour_list', [], 'par_cspond', [], 'perp_cspond', [], 'par_count', [], 'perp_count', []);
+annotation_lines = struct('par_count', [], 'perp_count', []);
+
+for k = 3 : numel(images)
+    img = Img('url', [directory images(k).name]);  
+    
+    cid_cache = CASS.CidCache(img.cid);
+
+    cid_cache.add_dependency('contour_list',model.opts);
+
+    cid_cache.add_dependency('parallel_lines',[], ...
+                             'parents','contour_list'); 
+    cid_cache.add_dependency('perpendicular_lines',[], ...
+                             'parents','contour_list'); 
+    
+    cid_cache.add_dependency('annotations','parallel_lines');
+    cid_cache.add_dependency('annotations','perpendicular_lines');
+    
+    par_cspond = cid_cache.get('annotations','parallel_lines');
+    perp_cspond = cid_cache.get('annotations','perpendicular_lines');
+    
+    contour_list = cid_cache.get('annotations','contour_list');
+    
+    % 1 is Good, 2 is Bad, 0 is Undefined
+%     annotation_lines(k-2).par_count = par_count;
+%     annotation_lines(k-2).perp_count = perp_count;
+%      keyboard
+    [~,name,~] = 
+    save([save_directory images(k).name '.mat'], 'contour_list', 'par_cspond', 'perp_cspond');
+
+end
+
+

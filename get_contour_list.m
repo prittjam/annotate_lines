@@ -62,10 +62,7 @@ function [contour_list,par_cspond,perp_cspond, cid_cache, bounding_boxes] = ...
                                      Gbox);
         perp_cspond = [perp_cspond{:}];
         cid_cache.put('annotations','perpendicular_lines',perp_cspond);
-    end
- save_labels_to_txt   
-    
-    
+    end    
     
 function box_id = label_box_id(C,bounding_box_list)
     in_box = zeros(1,numel(bounding_box_list));
@@ -125,4 +122,4 @@ function perp_cspond = make_perp_cspond(contour_list,contour_ind)
     perp_cspond = ...
         struct('cspond',mat2cell(cspond_perp(:,1:max_num_perp),2,ones(1,max_num_perp)), ...
                'label', mat2cell(zeros(1,max_num_perp),1,ones(1, ...
-                                                      max_num_perp)));                            
+                                                      max_num_perp)));                                                

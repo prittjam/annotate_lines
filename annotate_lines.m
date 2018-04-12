@@ -274,7 +274,7 @@ if ~isequal(file_name, 0)
         uistate.img = Img('url',uistate.img_urls{uistate.cur_url_id}); 
         [uistate.contour_list,uistate.par_cspond,uistate.perp_cspond, uistate.cid_cache, uistate.bounding_boxes] = ...
             get_contour_list(uistate.img);
-  
+
         [start_par_count, start_perp_count] = find_unlabeled_lines(uistate);
         uistate.par_count = start_par_count;
         uistate.perp_count = start_perp_count;
